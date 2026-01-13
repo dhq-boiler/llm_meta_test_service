@@ -1,3 +1,9 @@
+PATH
+  remote: ../llm_meta_client
+  specs:
+    llm_meta_client (0.1.0)
+      rails (>= 8.1.1)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -397,6 +403,7 @@ DEPENDENCIES
   importmap-rails
   jbuilder
   kamal
+  llm_meta_client!
   propshaft
   puma (>= 5.0)
   rails (~> 8.1.1)
