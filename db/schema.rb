@@ -10,5 +10,36 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 0) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_15_060124) do
+  create_table "chats", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "llm_uuid"
+    t.string "model"
+    t.datetime "updated_at", null: false
+    t.integer "user_id"
+    t.index ["user_id"], name: "index_chats_on_user_id"
+  end
+
+  create_table "messages", force: :cascade do |t|
+    t.integer "chat_id", null: false
+    t.text "content"
+    t.datetime "created_at", null: false
+    t.string "llm_type"
+    t.string "role"
+    t.datetime "updated_at", null: false
+    t.index ["chat_id"], name: "index_messages_on_chat_id"
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.string "google_id"
+    t.text "id_token"
+    t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["google_id"], name: "index_users_on_google_id", unique: true
+  end
+
+  add_foreign_key "chats", "users"
+  add_foreign_key "messages", "chats"
 end
