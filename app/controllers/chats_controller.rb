@@ -64,11 +64,7 @@ class ChatsController < ApplicationController
 
       # Send to LLM and get response
       begin
-        messages_for_llm = @chat.messages.order(:created_at).map do |msg|
-          { role: msg.role, content: msg.content }
-        end
-
-        response = send_to_llm(messages_for_llm, llm_uuid, model)
+        response = @chat.send_to_llm(jwt_token)
 
         # Save assistant response with LLM type
         assistant_message = @chat.messages.create!(
@@ -83,19 +79,19 @@ class ChatsController < ApplicationController
 
       rescue Exceptions::OllamaUnavailableError => e
         flash.now[:alert] = e.message
-        Rails.logger.error "Ollama unavailable in chat: #{e.message}"
+        Rails.logger.error "Ollama unavailable in chat: #{e.message}\n#{e.backtrace&.join("\n")}"
       rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved => e
         flash.now[:alert] = "Failed to save message: #{e.message}"
-        Rails.logger.error "Database error in chat creation: #{e.class} - #{e.message}"
+        Rails.logger.error "Database error in chat creation: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
       rescue HTTParty::Error, Net::HTTPError, Timeout::Error => e
         flash.now[:alert] = "Failed to connect to LLM server: #{e.message}"
-        Rails.logger.error "Network error in chat: #{e.class} - #{e.message}\n#{e.backtrace.join("\n")}"
+        Rails.logger.error "Network error in chat: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
       rescue JSON::ParserError => e
         flash.now[:alert] = "Invalid response from LLM server"
-        Rails.logger.error "JSON parse error in chat: #{e.class} - #{e.message}"
+        Rails.logger.error "JSON parse error in chat: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
       rescue StandardError => e
         flash.now[:alert] = "An error occurred: #{e.message}"
-        Rails.logger.error "Unexpected error in chat: #{e.class} - #{e.message}\n#{e.backtrace.join("\n")}"
+        Rails.logger.error "Unexpected error in chat: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
       end
     end
 
@@ -151,43 +147,5 @@ class ChatsController < ApplicationController
     else
       chat if chat&.user_id.nil?
     end
-  end
-
-  def send_to_llm(messages, llm_uuid = nil, model = nil)
-    # Get LLM options (Ollama only for guest users)
-    jwt_token = session[:jwt_token]
-    llm_options = LlmMetaServerResource.available_llm_options(jwt_token)
-
-    # Error if no LLM is available
-    raise Exceptions::OllamaUnavailableError, "No LLM available" if llm_options.empty?
-
-    # Use the first one if LLM UUID is not specified
-    if llm_uuid.blank?
-      llm_uuid = llm_options.first[:uuid]
-    end
-
-    # Validate the selected LLM
-    selected_llm = llm_options.find { |opt| opt[:uuid] == llm_uuid }
-    selected_llm ||= llm_options.first
-
-    # Use the first available model if model is not specified
-    if model.blank?
-      model = selected_llm[:available_models]&.first || "default"
-    end
-
-    # Send chat request using LlmMetaServerQuery
-    LlmMetaServerQuery.new.call(jwt_token, llm_uuid, model, messages)
-  rescue Exceptions::OllamaUnavailableError => e
-    Rails.logger.error "Ollama unavailable in send_to_llm: #{e.message}"
-    raise
-  rescue HTTParty::Error, Net::HTTPError, Timeout::Error => e
-    Rails.logger.error "Network error in send_to_llm: #{e.class} - #{e.message}"
-    raise
-  rescue JSON::ParserError => e
-    Rails.logger.error "JSON parse error in send_to_llm: #{e.class} - #{e.message}"
-    raise
-  rescue StandardError => e
-    Rails.logger.error "Unexpected error in send_to_llm: #{e.class} - #{e.message}"
-    raise
   end
 end
