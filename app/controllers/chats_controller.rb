@@ -8,7 +8,7 @@ class ChatsController < ApplicationController
     @messages = @chat&.ordered_messages || []
 
     # Get LLM options available for users
-    jwt_token = session[:jwt_token]
+    jwt_token = current_user.id_token if user_signed_in?
     @llm_options = LlmMetaServerResource.available_llm_options(jwt_token)
   rescue Exceptions::OllamaUnavailableError => e
     Rails.logger.error "Ollama unavailable: #{e.message}\n#{e.backtrace&.join("\n")}"
@@ -29,7 +29,7 @@ class ChatsController < ApplicationController
   end
 
   def create
-    jwt_token = session[:jwt_token]
+    jwt_token = current_user.id_token if user_signed_in?
 
     # Find or create chat
     @chat = Chat.find_or_create_for_session(
