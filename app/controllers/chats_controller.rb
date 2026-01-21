@@ -10,22 +10,10 @@ class ChatsController < ApplicationController
     # Get LLM options available for users
     jwt_token = current_user.id_token if user_signed_in?
     @llm_options = LlmMetaServerResource.available_llm_options(jwt_token)
-  rescue Exceptions::OllamaUnavailableError => e
-    Rails.logger.error "Ollama unavailable: #{e.message}\n#{e.backtrace&.join("\n")}"
-    @llm_options = []
-    flash.now[:alert] = e.message
-  rescue ActiveRecord::RecordNotFound, ActiveRecord::ActiveRecordError => e
-    Rails.logger.error "Database error in ChatsController#new: #{e.message}\n#{e.backtrace&.join("\n")}"
-    @llm_options = []
-    flash.now[:alert] = "Failed to load chat data: #{e.message}"
-  rescue HTTParty::Error, Net::HTTPError, Timeout::Error => e
-    Rails.logger.error "Network error loading LLM options: #{e.message}\n#{e.backtrace&.join("\n")}"
-    @llm_options = []
-    flash.now[:alert] = "Failed to connect to LLM server: #{e.message}"
   rescue StandardError => e
-    Rails.logger.error "Unexpected error in ChatsController#new: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
+    Rails.logger.error "Error in ChatsController#new: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
     @llm_options = []
-    flash.now[:alert] = "Failed to load LLM: #{e.message}"
+    flash.now[:alert] = "Chat service is currently unavailable. Please try again later."
   end
 
   def create
@@ -48,21 +36,9 @@ class ChatsController < ApplicationController
       begin
         assistant_message = @chat.add_assistant_response(jwt_token)
         broadcast_message(assistant_message)
-      rescue Exceptions::OllamaUnavailableError => e
-        flash.now[:alert] = e.message
-        Rails.logger.error "Ollama unavailable in chat: #{e.message}\n#{e.backtrace&.join("\n")}"
-      rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved => e
-        flash.now[:alert] = "Failed to save message: #{e.message}"
-        Rails.logger.error "Database error in chat creation: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
-      rescue HTTParty::Error, Net::HTTPError, Timeout::Error => e
-        flash.now[:alert] = "Failed to connect to LLM server: #{e.message}"
-        Rails.logger.error "Network error in chat: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
-      rescue JSON::ParserError => e
-        flash.now[:alert] = "Invalid response from LLM server"
-        Rails.logger.error "JSON parse error in chat: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
       rescue StandardError => e
-        flash.now[:alert] = "An error occurred: #{e.message}"
-        Rails.logger.error "Unexpected error in chat: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
+        Rails.logger.error "Error in chat response: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
+        flash.now[:alert] = "An error occurred while sending your message. Please try again."
       end
     end
 
