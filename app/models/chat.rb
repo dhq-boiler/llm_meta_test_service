@@ -39,8 +39,7 @@ class Chat < ApplicationRecord
 
     def clear_from_session(session)
       if session[:chat_id].present?
-        chat = find_by(id: session[:chat_id])
-        chat&.destroy
+        Chat.where(id: session[:chat_id]).destroy_all
       end
       session.delete(:chat_id)
     end
