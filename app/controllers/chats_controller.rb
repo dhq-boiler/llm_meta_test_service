@@ -30,21 +30,29 @@ class ChatsController < ApplicationController
     if params[:message].present?
       # Add user message
       user_message = @chat.add_user_message(params[:message])
+
+      # Immediately broadcast user message
       broadcast_message(user_message)
 
       # Send to LLM and get assistant response
       begin
         assistant_message = @chat.add_assistant_response(jwt_token)
+        # Broadcast assistant message after receiving
         broadcast_message(assistant_message)
       rescue StandardError => e
         Rails.logger.error "Error in chat response: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
-        flash.now[:alert] = "An error occurred while sending your message. Please try again."
+        # Broadcast error to client
+        ChatChannel.broadcast_to(
+          @chat,
+          {
+            action: "show_error",
+            message: "An error occurred while getting the response. Please try again."
+          }
+        )
       end
     end
 
-    # Reload messages for Turbo Stream
-    @messages = @chat.ordered_messages.to_a
-
+    # Return turbo stream to clear form
     respond_to do |format|
       format.turbo_stream
       format.html { redirect_to new_chat_path }
