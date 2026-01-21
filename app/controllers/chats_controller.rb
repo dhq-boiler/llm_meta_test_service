@@ -4,7 +4,7 @@ class ChatsController < ApplicationController
 
   def new
     # Get or create current conversation
-    @chat = Chat.find_from_session(session, current_user)
+    @chat = Chat.find_by_session_chat_id(session, current_user)
     @messages = @chat&.ordered_messages || []
 
     # Get LLM options available for users

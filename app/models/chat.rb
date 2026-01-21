@@ -8,7 +8,7 @@ class Chat < ApplicationRecord
   # Find existing chat from session or create new one
   class << self
     def find_or_create_for_session(session, current_user, llm_uuid, model)
-      chat = find_from_session(session, current_user)
+      chat = find_by_session_chat_id(session, current_user)
 
       # Create new chat if it doesn't exist or LLM/model has changed
       if chat.nil? || chat.needs_reset?(llm_uuid, model)
@@ -23,7 +23,7 @@ class Chat < ApplicationRecord
       chat
     end
 
-    def find_from_session(session, current_user)
+    def find_by_session_chat_id(session, current_user)
       return nil unless session[:chat_id].present?
 
       chat = find_by(id: session[:chat_id])
