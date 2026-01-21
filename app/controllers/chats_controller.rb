@@ -75,11 +75,6 @@ class ChatsController < ApplicationController
     end
   end
 
-  def clear
-    Chat.clear_from_session(session)
-    redirect_to new_chat_path, notice: "Chat history has been cleared"
-  end
-
   private
 
   def broadcast_message(message)
