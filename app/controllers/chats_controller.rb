@@ -58,13 +58,6 @@ class ChatsController < ApplicationController
   def broadcast_message(message)
     return unless @chat
 
-    # Render single message HTML
-    message_html = render_to_string(
-      partial: "chats/message",
-      locals: { message: message },
-      formats: [ :html ]
-    )
-
-    @chat.broadcast message_html
+    @chat.broadcast message
   end
 end

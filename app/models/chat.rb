@@ -82,10 +82,17 @@ class Chat < ApplicationRecord
     messages.order(:created_at)
   end
 
-  def broadcast(message_html)
+  def broadcast(message)
     # Build stream name using session ID and @chat.id
     destination = "chat_#{id}"
     Rails.logger.info "Broadcasting to: #{destination}"
+
+    # Render single message HTML
+    message_html = ApplicationController.renderer.render(
+      partial: "chats/message",
+      locals: { message: message },
+      formats: [ :html ]
+    )
 
     # Broadcast to ChatChannel
     ActionCable.server.broadcast(
