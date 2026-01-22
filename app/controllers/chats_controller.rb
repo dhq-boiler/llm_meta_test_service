@@ -65,17 +65,6 @@ class ChatsController < ApplicationController
       formats: [ :html ]
     )
 
-    # Build stream name using session ID and @chat.id
-    destination = "chat_#{@chat.id}"
-    Rails.logger.info "Broadcasting to: #{destination}"
-
-    # Broadcast to ChatChannel
-    ActionCable.server.broadcast(
-      destination,
-      {
-        action: "new_message",
-        html: message_html
-      }
-    )
+    @chat.broadcast message_html
   end
 end

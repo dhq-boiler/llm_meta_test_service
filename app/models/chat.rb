@@ -82,6 +82,21 @@ class Chat < ApplicationRecord
     messages.order(:created_at)
   end
 
+  def broadcast(message_html)
+    # Build stream name using session ID and @chat.id
+    destination = "chat_#{id}"
+    Rails.logger.info "Broadcasting to: #{destination}"
+
+    # Broadcast to ChatChannel
+    ActionCable.server.broadcast(
+      destination,
+      {
+        action: "new_message",
+        html: message_html
+      }
+    )
+  end
+
   private
 
   # Send messages to LLM and get response
