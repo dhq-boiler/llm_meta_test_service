@@ -60,27 +60,32 @@ class Chat < ApplicationRecord
 
   # Add a user message to the chat
   def add_user_message(content)
-    messages.create!(
+    new_message = messages.create!(
       role: "user",
       content: content
     )
+    broadcast new_message
   end
 
   # Add assistant response by sending to LLM
   def add_assistant_response(jwt_token)
     response_content = send_to_llm(jwt_token)
 
-    messages.create!(
+    new_message = messages.create!(
       role: "assistant",
       content: response_content,
       llm_type: llm_type(jwt_token)
     )
+
+    broadcast new_message
   end
 
   # Get all messages in order
   def ordered_messages
     messages.order(:created_at)
   end
+
+  private
 
   def broadcast(message)
     # Build stream name using session ID and @chat.id
@@ -103,8 +108,6 @@ class Chat < ApplicationRecord
       }
     )
   end
-
-  private
 
   # Send messages to LLM and get response
   def send_to_llm(jwt_token)

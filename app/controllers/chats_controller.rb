@@ -29,16 +29,11 @@ class ChatsController < ApplicationController
 
     if params[:message].present?
       # Add user message
-      user_message = @chat.add_user_message(params[:message])
-
-      # Immediately broadcast user message
-      broadcast_message(user_message)
+      @chat.add_user_message(params[:message])
 
       # Send to LLM and get assistant response
       begin
-        assistant_message = @chat.add_assistant_response(jwt_token)
-        # Broadcast assistant message after receiving
-        broadcast_message(assistant_message)
+        @chat.add_assistant_response(jwt_token)
       rescue StandardError => e
         Rails.logger.error "Error in chat response: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
         # Broadcast error to client
@@ -51,13 +46,5 @@ class ChatsController < ApplicationController
       format.turbo_stream
       format.html { redirect_to new_chat_path }
     end
-  end
-
-  private
-
-  def broadcast_message(message)
-    return unless @chat
-
-    @chat.broadcast message
   end
 end
