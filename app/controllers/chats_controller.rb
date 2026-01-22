@@ -66,7 +66,7 @@ class ChatsController < ApplicationController
     )
 
     # Build stream name using session ID and @chat.id
-    destination = "session_#{session.id}_chat_#{@chat.id}"
+    destination = "chat_#{@chat.id}"
     Rails.logger.info "Broadcasting to: #{destination}"
 
     # Broadcast to ChatChannel
