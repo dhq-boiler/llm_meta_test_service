@@ -65,11 +65,11 @@ class ChatsController < ApplicationController
       formats: [ :html ]
     )
 
-    # @chat.idを使用してストリーム名を構築
+    # Build stream name using session ID and @chat.id
     destination = "session_#{session.id}_chat_#{@chat.id}"
     Rails.logger.info "Broadcasting to: #{destination}"
 
-    # transmit to ChatChannel
+    # Broadcast to ChatChannel
     ActionCable.server.broadcast(
       destination,
       {
