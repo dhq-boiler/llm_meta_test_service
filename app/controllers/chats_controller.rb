@@ -42,13 +42,7 @@ class ChatsController < ApplicationController
       rescue StandardError => e
         Rails.logger.error "Error in chat response: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
         # Broadcast error to client
-        ChatChannel.broadcast_to(
-          @chat,
-          {
-            action: "show_error",
-            message: "An error occurred while getting the response. Please try again."
-          }
-        )
+        broadcast_message("An error occurred while getting the response. Please try again.")
       end
     end
 
@@ -71,9 +65,13 @@ class ChatsController < ApplicationController
       formats: [ :html ]
     )
 
-    # Broadcast to ChatChannel
-    ChatChannel.broadcast_to(
-      @chat,
+    # @chat.idを使用してストリーム名を構築
+    destination = "session_#{session.id}_chat_#{@chat.id}"
+    Rails.logger.info "Broadcasting to: #{destination}"
+
+    # transmit to ChatChannel
+    ActionCable.server.broadcast(
+      destination,
       {
         action: "new_message",
         html: message_html
