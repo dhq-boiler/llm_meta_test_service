@@ -22,13 +22,6 @@ class Chat < ApplicationRecord
 
       chat
     end
-
-    def clear_from_session(session)
-      if session[:chat_id].present?
-        Chat.where(id: session[:chat_id]).destroy_all
-      end
-      session.delete(:chat_id)
-    end
   end
 
   # Check if chat needs to be reset due to LLM or model change
