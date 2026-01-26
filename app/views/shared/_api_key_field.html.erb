@@ -1,0 +1,22 @@
+<%
+  llm_options = local_assigns[:llm_options] || []
+  stimulus_controller = local_assigns[:stimulus_controller]
+  # Convert hyphens to underscores for Stimulus targets on the Rails side
+  stimulus_target_prefix = stimulus_controller.gsub('-', '_')
+%>
+<div class="api-key-field">
+  <label>LLM Service</label>
+  <%= select_tag :api_key_uuid,
+                 options_for_select([["Please select a service", ""]] +
+                                    llm_options.map { |opt| [opt[:description], opt[:uuid]] }),
+                 { required: true,
+                   data: {
+                     "#{stimulus_target_prefix}-target": "apiKey",
+                     action: "change->#{stimulus_controller}#apiKeyChanged change->#{stimulus_controller}#updateSubmitButton",
+                     models: llm_options.map { |opt| {
+                       value: opt[:uuid],
+                       models: (opt[:available_models] || []).map { |m| { value: m["value"], label: m["label"] } },
+                       type: opt[:llm_type]
+                     } }.to_json
+                   } } %>
+</div>
