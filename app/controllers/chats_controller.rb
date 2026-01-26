@@ -3,8 +3,11 @@ class ChatsController < ApplicationController
   skip_before_action :authenticate_user!, raise: false
 
   def new
-    # Get or create current conversation
-    @chat = Chat.find_by_session_chat_id(session, current_user)
+    # Find current conversation or create it on create method if not found
+    @chat = Chat.find_or_switch_for_session(
+      session,
+      current_user
+    )
     @messages = @chat&.ordered_messages || []
 
     # Get LLM options available for users
@@ -20,11 +23,12 @@ class ChatsController < ApplicationController
     jwt_token = current_user.id_token if user_signed_in?
 
     # Find or create chat
-    @chat = Chat.find_or_create_for_session(
+    # Create chat if not found, now that we have both api_key_uuid and model
+    @chat = Chat.find_or_switch_for_session(
       session,
       current_user,
-      params[:api_key_uuid],
-      params[:model]
+      llm_uuid: params[:api_key_uuid],
+      model: params[:model]
     )
 
     if params[:message].present?

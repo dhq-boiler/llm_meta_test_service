@@ -7,11 +7,12 @@ class Chat < ApplicationRecord
 
   # Find existing chat from session or create new one
   class << self
-    def find_or_create_for_session(session, current_user, llm_uuid, model)
+    def find_or_switch_for_session(session, current_user, llm_uuid: llm_uuid, model: model)
       chat = find_by_session_chat_id(session, current_user)
+      return chat if llm_uuid.nil? || model.nil?
 
       # Create new chat if it doesn't exist or LLM/model has changed
-      if chat.nil? || chat.needs_reset?(llm_uuid, model)
+      if llm_uuid.present? && model.present? && (chat.nil? || (chat.present? && chat.needs_reset?(llm_uuid, model)))
         chat = create!(
           user: current_user,
           llm_uuid: llm_uuid,
@@ -22,11 +23,23 @@ class Chat < ApplicationRecord
 
       chat
     end
-  end
 
-  # Check if chat needs to be reset due to LLM or model change
-  def needs_reset?(new_llm_uuid, new_model)
-    llm_uuid != new_llm_uuid || model != new_model
+    private
+
+    def find_by_session_chat_id(session, current_user)
+      return nil unless session[:chat_id].present?
+
+      chat = find_by(id: session[:chat_id])
+      return nil unless chat
+
+      # For guest users, only get conversations with nil user_id
+      # For logged-in users, only get their own conversations
+      if current_user
+        chat if chat.user_id == current_user.id
+      else
+        chat if chat.user_id.nil?
+      end
+    end
   end
 
   # Get the LLM type for this chat
@@ -63,6 +76,11 @@ class Chat < ApplicationRecord
     messages.order(:created_at)
   end
 
+  # Check if chat needs to be reset due to LLM or model change
+  def needs_reset?(new_llm_uuid, new_model)
+    llm_uuid != new_llm_uuid || model != new_model
+  end
+
   private
 
   def broadcast(message)
@@ -85,21 +103,6 @@ class Chat < ApplicationRecord
         html: message_html
       }
     )
-  end
-
-  def find_by_session_chat_id(session, current_user)
-    return nil unless session[:chat_id].present?
-
-    chat = find_by(id: session[:chat_id])
-    return nil unless chat
-
-    # For guest users, only get conversations with nil user_id
-    # For logged-in users, only get their own conversations
-    if current_user
-      chat if chat.user_id == current_user.id
-    else
-      chat if chat.user_id.nil?
-    end
   end
 
   # Send messages to LLM and get response
