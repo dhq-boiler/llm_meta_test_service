@@ -23,21 +23,6 @@ class Chat < ApplicationRecord
       chat
     end
 
-    def find_by_session_chat_id(session, current_user)
-      return nil unless session[:chat_id].present?
-
-      chat = find_by(id: session[:chat_id])
-      return nil unless chat
-
-      # For guest users, only get conversations with nil user_id
-      # For logged-in users, only get their own conversations
-      if current_user
-        chat if chat.user_id == current_user.id
-      else
-        chat if chat.user_id.nil?
-      end
-    end
-
     def clear_from_session(session)
       if session[:chat_id].present?
         Chat.where(id: session[:chat_id]).destroy_all
@@ -107,6 +92,21 @@ class Chat < ApplicationRecord
         html: message_html
       }
     )
+  end
+
+  def find_by_session_chat_id(session, current_user)
+    return nil unless session[:chat_id].present?
+
+    chat = find_by(id: session[:chat_id])
+    return nil unless chat
+
+    # For guest users, only get conversations with nil user_id
+    # For logged-in users, only get their own conversations
+    if current_user
+      chat if chat.user_id == current_user.id
+    else
+      chat if chat.user_id.nil?
+    end
   end
 
   # Send messages to LLM and get response
