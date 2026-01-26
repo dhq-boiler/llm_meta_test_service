@@ -1,4 +1,15 @@
 Rails.application.routes.draw do
+  root "chats#new"
+
+  # Mount Action Cable
+  mount ActionCable.server => "/cable"
+
+  resources :chats, only: [ :new, :create ] do
+    collection do
+      delete :clear
+    end
+  end
+
   devise_for :users, controllers: {
     omniauth_callbacks: "users/omniauth_callbacks",
     sessions: "users/sessions"
