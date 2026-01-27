@@ -31,7 +31,7 @@ function subscribeToChatChannel(chatId) {
           // Update message list
           const messagesList = document.getElementById("messages-list")
           if (messagesList && data.html) {
-            messagesList.innerHTML = data.html
+            messagesList.insertAdjacentHTML('beforeend', data.html)
 
             // Scroll to bottom of messages
             const chatMessages = document.getElementById("chat-messages")
