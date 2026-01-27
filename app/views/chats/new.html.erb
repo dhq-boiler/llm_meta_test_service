@@ -1,4 +1,4 @@
-<% content_for :title, "チャット - LLM Meta Client" %>
+<% content_for :title, "Chat - LLM Meta Client" %>
 
 <div class="chat-container" data-chat-id="<%= @chat&.id %>">
   <div class="chat-messages" id="chat-messages">
@@ -17,7 +17,7 @@
       <% end %>
       <div class="input-wrapper">
         <%= f.text_area :message,
-            placeholder: "メッセージを入力してください...",
+            placeholder: "Enter your message...",
             class: "chat-input",
             rows: 3,
             autofocus: true,
@@ -26,7 +26,7 @@
             data: { "chats-form-target": "prompt", action: "input->chats-form#updateSubmitButton" } %>
       </div>
       <div class="button-wrapper">
-        <%= f.submit "送信",
+        <%= f.submit "Send",
             class: "send-button",
             disabled: true,
             data: {
@@ -243,7 +243,7 @@
     background-color: #1d4ed8;
   }
 
-  /* スクロールバーのスタイル */
+  /* Scrollbar style */
   .chat-messages::-webkit-scrollbar {
     width: 8px;
   }
@@ -265,7 +265,7 @@
 
 <script>
 
-  // チャットメッセージを最下部にスクロール
+  // Scroll chat messages to bottom
   document.addEventListener('DOMContentLoaded', function() {
     const chatMessages = document.getElementById('chat-messages');
     if (chatMessages) {
@@ -273,7 +273,7 @@
     }
   });
 
-  // フォーム送信後も最下部にスクロール
+  // Scroll to bottom after form submission
   window.addEventListener('load', function() {
     const chatMessages = document.getElementById('chat-messages');
     if (chatMessages) {
