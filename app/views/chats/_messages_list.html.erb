@@ -1,0 +1,12 @@
+<% if messages.present? %>
+  <% messages.each do |message| %>
+    <%= render partial: "chats/message", locals: { message: message } %>
+  <% end %>
+<% else %>
+  <div class="empty-state">
+    <p>👋 こんにちは！何かお手伝いできることはありますか？</p>
+  </div>
+<% end %>
+
+
+

@@ -1,0 +1,12 @@
+<div class="message <%= message.role %>">
+  <div class="message-role">
+    <% if message.role == 'user' %>
+      👤 You
+    <% else %>
+      🤖 <%= message.llm_type&.capitalize || 'LLM' %>
+    <% end %>
+  </div>
+  <div class="message-content">
+    <%= simple_format(message.content) %>
+  </div>
+</div>
