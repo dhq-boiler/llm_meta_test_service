@@ -1,0 +1,59 @@
+<% content_for :title, "Chat - LLM Meta Client" %>
+
+<div class="chat-container" data-chat-id="<%= @chat&.id %>">
+  <div class="chat-messages" id="chat-messages">
+    <div id="messages-list">
+      <%= render partial: "chats/messages_list", locals: { messages: @chat&.messages } %>
+    </div>
+  </div>
+
+  <div class="chat-input-container">
+    <%= form_with url: chats_path, method: :post, class: "chat-form", data: { controller: "chats-form", guest: current_user.nil? } do |f| %>
+      <% if @llm_options.present? %>
+        <div class="llm-selector-wrapper">
+          <%= render "shared/api_key_field", llm_options: @llm_options, stimulus_controller: "chats-form" %>
+          <%= render "shared/model_field", stimulus_controller: "chats-form" %>
+        </div>
+      <% end %>
+      <div class="input-wrapper">
+        <%= f.text_area :message,
+            placeholder: "Enter your message...",
+            class: "chat-input",
+            rows: 3,
+            autofocus: true,
+            required: true,
+            id: "message-input",
+            data: { "chats-form-target": "prompt", action: "input->chats-form#updateSubmitButton" } %>
+      </div>
+      <div class="button-wrapper">
+        <%= f.submit "Send",
+            class: "send-button",
+            disabled: true,
+            data: {
+              "chats-form-target": "submit"
+            } %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+
+<script>
+
+  // Scroll chat messages to bottom
+  document.addEventListener('DOMContentLoaded', function() {
+    const chatMessages = document.getElementById('chat-messages');
+    if (chatMessages) {
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+  });
+
+  // Scroll to bottom after form submission
+  window.addEventListener('load', function() {
+    const chatMessages = document.getElementById('chat-messages');
+    if (chatMessages) {
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+  });
+</script>
+

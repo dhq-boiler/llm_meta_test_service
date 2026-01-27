@@ -1,0 +1,36 @@
+<%= turbo_stream.update "message-input" do %>
+<% end %>
+
+<turbo-stream action="after" target="messages-list">
+  <template>
+    <script>
+      // Update chat-container data-chat-id if needed
+      <% if @chat %>
+      const chatContainer = document.querySelector('.chat-container');
+      if (chatContainer) {
+        chatContainer.dataset.chatId = '<%= @chat.id %>';
+
+        // Trigger chat channel subscription
+        if (window.subscribeToChatChannel) {
+          window.subscribeToChatChannel('<%= @chat.id %>');
+        }
+      }
+      <% end %>
+
+      // Clear and refocus message input
+      const messageInput = document.getElementById('message-input');
+      if (messageInput) {
+        messageInput.value = '';
+        messageInput.focus();
+      }
+
+      // Update submit button state
+      const form = document.querySelector('[data-controller="chats-form"]');
+      if (form && messageInput) {
+        const event = new Event('input', { bubbles: true });
+        messageInput.dispatchEvent(event);
+      }
+    </script>
+  </template>
+</turbo-stream>
+
