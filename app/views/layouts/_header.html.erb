@@ -1,0 +1,35 @@
+<header>
+  <div class="inner">
+    <div class="logo">
+      <%= link_to "LLM Meta Client", root_path %>
+    </div>
+    <div class="header-right">
+      <% unless current_page?(controller: "chats", action: "new") %>
+        <%= link_to root_path, class: "new-text-button" do %>
+          <i class="fa-solid fa-plus"></i> New Chat
+        <% end %>
+      <% end %>
+      <% if user_signed_in? %>
+        <div class="user-menu">
+          <button popovertarget="user-menu-popover" class="user-menu-toggle" type="button">
+            <span class="user-email"><%= current_user.email %></span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div popover="auto" id="user-menu-popover" class="user-popover-menu">
+            <%= form_with url: user_logout_path, method: :post, local: true, data: { turbo: false } do |form| %>
+              <%= button_tag type: "submit", class: "popover-logout-button" do %>
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign out
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      <% else %>
+        <%= form_with url: user_google_oauth2_omniauth_authorize_path, method: :post, local: true, data: { turbo: false } do |form| %>
+          <%= button_tag type: "submit", class: "signin-button" do %>
+            <i class="fa-brands fa-google"></i> Sign in with Google
+          <% end %>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</header>
