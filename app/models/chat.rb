@@ -73,7 +73,19 @@ class Chat < ApplicationRecord
 
   # Get all messages in order
   def ordered_messages
-    messages.order(:created_at)
+    messages
+      .includes(message_prompt_execution: :prompt_execution)
+      .order(:created_at)
+  end
+
+  def ordered_by_descending_prompt_executions
+    messages
+      .where(role: "user")
+      .includes(message_prompt_execution: :prompt_execution)
+      .order(created_at: :desc)
+      .to_a
+      .select { |msg| msg.prompt_manager_prompt_execution }
+      .map(&:prompt_manager_prompt_execution)
   end
 
   # Check if chat needs to be reset due to LLM or model change
