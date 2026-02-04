@@ -2,6 +2,8 @@ class Chat < ApplicationRecord
   belongs_to :user, optional: true
   has_many :messages, dependent: :destroy
 
+  before_create :set_uuid
+
   validates :llm_uuid, presence: true
   validates :model, presence: true
 
@@ -50,25 +52,43 @@ class Chat < ApplicationRecord
   end
 
   # Add a user message to the chat
-  def add_user_message(content)
+  def add_user_message(message, model, branch_from_uuid = nil)
+    parent_message = branch_from_uuid.present? ? messages.find_by(uuid: branch_from_uuid) : nil
+    prompt_execution = PromptManager::PromptExecution.create!(
+      prompt: message,
+      model: model,
+      configuration: "",
+      previous_id: parent_message&.prompt_manager_prompt_execution_id
+    )
     new_message = messages.create!(
       role: "user",
-      content: content
     )
-    broadcast new_message
+    # Create association in intermediate table
+    MessagePromptExecution.create!(
+      message: new_message,
+      prompt_execution: prompt_execution
+    )
+
+    [ prompt_execution, new_message ]
   end
 
   # Add assistant response by sending to LLM
-  def add_assistant_response(jwt_token)
+  def add_assistant_response(prompt_execution, jwt_token)
     response_content = send_to_llm(jwt_token)
-
+    prompt_execution.update!(
+      llm_platform: llm_type(jwt_token),
+      response: response_content
+    )
     new_message = messages.create!(
       role: "assistant",
-      content: response_content,
-      llm_type: llm_type(jwt_token)
+    )
+    # Create association in intermediate table
+    MessagePromptExecution.create!(
+      message: new_message,
+      prompt_execution: prompt_execution
     )
 
-    broadcast new_message
+    new_message
   end
 
   # Get all messages in order
@@ -95,26 +115,9 @@ class Chat < ApplicationRecord
 
   private
 
-  def broadcast(message)
-    # Build stream name using session ID and @chat.id
-    destination = "chat_#{id}"
-    Rails.logger.info "Broadcasting to: #{destination}"
-
-    # Render single message HTML
-    message_html = ApplicationController.renderer.render(
-      partial: "chats/message",
-      locals: { message: message },
-      formats: [ :html ]
-    )
-
-    # Broadcast to ChatChannel
-    ActionCable.server.broadcast(
-      destination,
-      {
-        action: "new_message",
-        html: message_html
-      }
-    )
+  # Set a new UUID
+  def set_uuid
+    self.uuid = SecureRandom.uuid
   end
 
   # Send messages to LLM and get response
