@@ -122,11 +122,25 @@ class Chat < ApplicationRecord
     raise Exceptions::OllamaUnavailableError, "No LLM available" if llm_options.empty?
 
     # Prepare messages for LLM
-    messages_for_llm = ordered_messages.map do |msg|
-      { role: msg.role, content: msg.content }
+    all_messages = ordered_messages.to_a
+    last_msg = all_messages.last
+
+    # Prepare prompt and context
+    prompt = { role: last_msg.role, prompt: last_msg.prompt_manager_prompt_execution.prompt }
+    context = all_messages[0...-1].last(Rails.configuration.summarize_conversation_count).map do |msg|
+      { role: msg.role, prompt: msg.prompt_manager_prompt_execution.prompt, response: msg.prompt_manager_prompt_execution&.response }
     end
 
+    if context.empty?
+      summarized_context = "No context available."
+    else
+      # Summarize context
+      summarized_context = LlmMetaServerQuery.new.call(jwt_token, llm_uuid, model, context, "Please summarize the context")
+    end
+
+    summarized_context += "Additional prompt: Responses from the assistant must consist solely of the response body."
+
     # Send chat request using LlmMetaServerQuery
-    LlmMetaServerQuery.new.call(jwt_token, llm_uuid, model, messages_for_llm)
+    LlmMetaServerQuery.new.call(jwt_token, llm_uuid, model, summarized_context, prompt)
   end
 end
