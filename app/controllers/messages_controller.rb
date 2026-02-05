@@ -27,8 +27,10 @@ class MessagesController < ApplicationController
   end
 
   def show_by_uuid
-    @prompt_execution= PromptManager::PromptExecution.find_by(execution_id: params[:uuid])
-    @message = Message.includes(:chat).find_by(prompt_manager_prompt_execution_id: @prompt_execution.execution_id)
+    @prompt_execution = PromptManager::PromptExecution.find_by(execution_id: params[:uuid])
+    @message = Message.joins(message_prompt_execution: :prompt_execution)
+                      .includes(:chat)
+                      .find_by(prompt_manager_prompt_executions: { execution_id: params[:uuid] })
     @chat = @message.chat
     @messages = @chat.ordered_messages
 
