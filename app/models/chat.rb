@@ -60,13 +60,10 @@ class Chat < ApplicationRecord
       configuration: "",
       previous_id: parent_message&.prompt_manager_prompt_execution_id
     )
+
     new_message = messages.create!(
       role: "user",
-    )
-    # Create association in intermediate table
-    MessagePromptExecution.create!(
-      message: new_message,
-      prompt_execution: prompt_execution
+      prompt_manager_prompt_execution: prompt_execution
     )
 
     [ prompt_execution, new_message ]
@@ -81,11 +78,7 @@ class Chat < ApplicationRecord
     )
     new_message = messages.create!(
       role: "assistant",
-    )
-    # Create association in intermediate table
-    MessagePromptExecution.create!(
-      message: new_message,
-      prompt_execution: prompt_execution
+      prompt_manager_prompt_execution: prompt_execution
     )
 
     new_message
@@ -94,14 +87,14 @@ class Chat < ApplicationRecord
   # Get all messages in order
   def ordered_messages
     messages
-      .includes(message_prompt_execution: :prompt_execution)
+      .includes(:prompt_manager_prompt_execution)
       .order(:created_at)
   end
 
   def ordered_by_descending_prompt_executions
     messages
       .where(role: "user")
-      .includes(message_prompt_execution: :prompt_execution)
+      .includes(:prompt_manager_prompt_execution)
       .order(created_at: :desc)
       .to_a
       .select { |msg| msg.prompt_manager_prompt_execution }
