@@ -16,9 +16,11 @@
   <link rel="icon" href="/icon.png" type="image/png">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/icon.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
   <%# Includes all stylesheet files in app/assets/stylesheets %>
   <%= stylesheet_link_tag :app %>
+  <%= stylesheet_link_tag "prompt_manager/history", "data-turbo-track": "reload" %>
   <%= javascript_importmap_tags %>
 </head>
 
@@ -26,11 +28,11 @@
 <%= render "layouts/header" %>
 
 <div class="body">
-  <% unless controller_name == 'chats' %>
-    <div class="sidebar">
-      <%= render "layouts/sidebar", locals: { history: @history, active_uuid: @active_uuid } %>
+  <div class="sidebar">
+    <div id="history-sidebar">
+      <%= history_list(->(execution_id) { prompt_path(execution_id) }, active_uuid: @active_message_uuid) %>
     </div>
-  <% end %>
+  </div>
   <div class="content <%= 'content-full' if controller_name == 'chats' %>">
     <% if alert %>
       <div class="flash alert"><%= alert %></div>
