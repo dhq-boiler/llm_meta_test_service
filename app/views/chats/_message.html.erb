@@ -1,12 +1,16 @@
-<div class="message <%= message.role %>">
+<div class="message <%= message.role %>" id="message-<%= message.id %>">
   <div class="message-role">
     <% if message.role == 'user' %>
       👤 You
     <% else %>
-      🤖 <%= message.llm_type&.capitalize || 'LLM' %>
+      🤖 <%= message.prompt_manager_prompt_execution.llm_platform&.capitalize || 'LLM' %>
     <% end %>
   </div>
   <div class="message-content">
-    <%= simple_format(message.content) %>
+    <% if message.role == 'user' %>
+      <%= simple_format(message.prompt_manager_prompt_execution&.prompt) %>
+    <% else %>
+      <%= simple_format(message.prompt_manager_prompt_execution&.response) %>
+    <% end %>
   </div>
 </div>
