@@ -38,6 +38,58 @@ export default class extends Controller {
     this.submitTarget.disabled = !this.#canSubmit()
   }
 
+  // Handle form submission to show user message immediately
+  submit() {
+    // Don't prevent default - let Turbo handle the form submission
+    // Just add the user message to the DOM immediately
+    const messageContent = this.promptTarget.value.trim()
+
+    if (!messageContent) {
+      return
+    }
+
+    // Add user message to the messages list immediately
+    this.#addUserMessageToDOM(messageContent)
+
+    // DON'T clear the input here - let the server response handle it
+    // Otherwise the POST will be sent with empty value
+
+    // Scroll to bottom
+    this.#scrollToBottom()
+  }
+
+  #addUserMessageToDOM(content) {
+    const messagesList = document.getElementById('messages-list')
+    if (!messagesList) return
+
+    // Create message HTML
+    const messageDiv = document.createElement('div')
+    messageDiv.className = 'message user'
+    messageDiv.innerHTML = `
+      <div class="message-role">
+        👤 You
+      </div>
+      <div class="message-content">
+        <p>${this.#escapeHtml(content)}</p>
+      </div>
+    `
+
+    messagesList.appendChild(messageDiv)
+  }
+
+  #escapeHtml(text) {
+    const div = document.createElement('div')
+    div.textContent = text
+    return div.innerHTML
+  }
+
+  #scrollToBottom() {
+    const chatMessages = document.getElementById('chat-messages')
+    if (chatMessages) {
+      chatMessages.scrollTop = chatMessages.scrollHeight
+    }
+  }
+
   #setDefaultApiKeyAndModel() {
     const urlParams = new URLSearchParams(window.location.search)
     const defaultApiKey = urlParams.get("api_key_uuid")
