@@ -1,0 +1,74 @@
+<% content_for :title, "Chat - LLM Meta Client" %>
+
+<div class="chat-container" data-chat-id="<%= @chat&.id %>">
+  <div class="chat-messages" id="chat-messages">
+    <div id="messages-list">
+      <%= render partial: "chats/messages_list", locals: { messages: @chat&.messages } %>
+    </div>
+  </div>
+
+  <div class="chat-input-container">
+    <%= form_with url: chat_path(@chat), method: :patch, class: "chat-form", data: { controller: "chats-form", guest: current_user.nil?, action: "submit->chats-form#submit" } do |f| %>
+      <% if @llm_options.present? %>
+        <div class="llm-selector-wrapper">
+          <%= render "shared/api_key_field", llm_options: @llm_options, stimulus_controller: "chats-form" %>
+          <%= render "shared/model_field", stimulus_controller: "chats-form" %>
+        </div>
+      <% end %>
+      <div class="input-wrapper">
+        <%= f.text_area :message,
+            placeholder: "Enter your message...",
+            class: "chat-input",
+            rows: 3,
+            autofocus: true,
+            required: true,
+            id: "message-input",
+            data: { "chats-form-target": "prompt", action: "input->chats-form#updateSubmitButton" } %>
+      </div>
+      <%= f.hidden_field :branch_from_uuid, value: params.dig(:chat, :branch_from_uuid) %>
+      <div class="button-wrapper">
+        <%= f.button type: "submit",
+            class: "send-button",
+            disabled: true,
+            data: {
+              "chats-form-target": "submit"
+            } do %>
+          <i class="bi bi-send-fill"></i>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+
+<script>
+  // Function to handle scrolling for both initial load and Turbo navigation
+  function scrollChatMessages() {
+    const chatMessages = document.getElementById('chat-messages');
+    if (chatMessages) {
+      <% if @target_message_id.present? %>
+        // Scroll to target message
+        const targetMessage = document.getElementById('message-<%= @target_message_id %>');
+        if (targetMessage) {
+          targetMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Highlight the target message
+          targetMessage.style.backgroundColor = '#fef3c7';
+          targetMessage.style.border = '2px solid #fbbf24';
+          setTimeout(() => {
+            targetMessage.style.transition = 'all 2s ease';
+            targetMessage.style.backgroundColor = '';
+            targetMessage.style.border = '';
+          }, 2000);
+        }
+      <% else %>
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      <% end %>
+    }
+  }
+
+  // Scroll chat messages to bottom or to target message
+  // Support both regular page loads and Turbo navigation
+  document.addEventListener('DOMContentLoaded', scrollChatMessages);
+  document.addEventListener('turbo:load', scrollChatMessages);
+</script>
+
