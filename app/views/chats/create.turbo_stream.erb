@@ -1,22 +1,58 @@
+<%# Clear the message input %>
 <%= turbo_stream.update "message-input" do %>
 <% end %>
 
+<%# User message is already shown by JavaScript on form submit %>
+<%# Only render assistant message here %>
+
+<%# Render assistant message if available %>
+<% if @assistant_message %>
+<%= turbo_stream.append "messages-list" do %>
+  <%= render partial: "chats/message", locals: { message: @assistant_message } %>
+<% end %>
+<% end %>
+
+<%# Show error message if any %>
+<% if @error_message %>
+<%= turbo_stream.append "messages-list" do %>
+  <div class="message error">
+    <div class="message-content">
+      <p><%= @error_message %></p>
+    </div>
+  </div>
+<% end %>
+<% end %>
+
+<%# Update history sidebar - replace entire content to ensure update %>
+<% if @prompt_execution %>
+  <%= turbo_stream.replace "history-sidebar" do %>
+    <div id="history-content">
+      <h2>History</h2>
+      <div class="history-stack" id="history-stack" data-controller="history">
+        <%= render 'prompt_manager/history_card', locals: {
+          ann: @prompt_execution,
+          next_ann: nil,
+          is_active: @prompt_execution.execution_id == @active_message_uuid,
+          card_path: ->(uuid) { prompt_path(uuid) }
+        } %>
+        <% (@chat&.ordered_by_descending_prompt_executions || []).drop(1).each_with_index do |ann, idx| %>
+          <%= render 'prompt_manager/history_card', locals: {
+            ann: ann,
+            next_ann: @chat.ordered_by_descending_prompt_executions[idx + 2],
+            is_active: ann.execution_id == @active_message_uuid,
+            card_path: ->(uuid) { prompt_path(uuid) }
+          } %>
+        <% end %>
+        <svg class="history-arrows" data-history-target="svg"></svg>
+      </div>
+    </div>
+  <% end %>
+<% end %>
+
+<%# Clear input, refocus, and scroll %>
 <turbo-stream action="after" target="messages-list">
   <template>
     <script>
-      // Update chat-container data-chat-id if needed
-      <% if @chat %>
-      const chatContainer = document.querySelector('.chat-container');
-      if (chatContainer) {
-        chatContainer.dataset.chatId = '<%= @chat.id %>';
-
-        // Trigger chat channel subscription
-        if (window.subscribeToChatChannel) {
-          window.subscribeToChatChannel('<%= @chat.id %>');
-        }
-      }
-      <% end %>
-
       // Clear and refocus message input
       const messageInput = document.getElementById('message-input');
       if (messageInput) {
@@ -29,6 +65,12 @@
       if (form && messageInput) {
         const event = new Event('input', { bubbles: true });
         messageInput.dispatchEvent(event);
+      }
+
+      // Scroll to bottom
+      const chatMessages = document.getElementById('chat-messages');
+      if (chatMessages) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
       }
     </script>
   </template>
