@@ -181,6 +181,7 @@ header {
   gap: 8px;
   font-size: 14px;
   transition: all 0.2s;
+  anchor-name: --user-menu-anchor;
 
   &:hover {
     background-color: #f9fafb;
@@ -193,13 +194,28 @@ header {
 }
 
 .user-popover-menu {
-  margin-top: 8px;
   background-color: white;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   padding: 4px;
   min-width: 180px;
+  margin: 0;
+
+  /* Modern browsers: CSS Anchor Positioning */
+  position-anchor: --user-menu-anchor;
+  position-area: block-end span-inline-end;
+  margin-block-start: 8px;
+
+  /* Fallback for older browsers */
+  @supports not (position-area: block-end) {
+    position: fixed;
+    inset: unset;
+  }
+}
+
+.user-popover-menu::backdrop {
+  background: transparent;
 }
 
 .popover-logout-button {
