@@ -1,8 +1,11 @@
 
 class LlmMetaServerQuery
-  def call(id_token, api_key_uuid, model_id, user_content)
-    Rails.logger.info "Request to LLM: \n===>\n#{user_content}\n===>" if Rails.env.development?
-    response = request(api_key_uuid, id_token, model_id, user_content)
+  def call(id_token, api_key_uuid, model_id, context, user_content)
+    Rails.logger.info "Context: #{context}" if Rails.env.development?
+    context_and_user_content = "Context:#{context}, User Prompt: #{user_content}"
+    Rails.logger.info "Request to LLM: \n===>\n#{context_and_user_content}\n===>" if Rails.env.development?
+
+    response = request(api_key_uuid, id_token, model_id, context_and_user_content)
     response_body = response.parsed_response
     content = response_body.dig("response", "message") || ""
 
