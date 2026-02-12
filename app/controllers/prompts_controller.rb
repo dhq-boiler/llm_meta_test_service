@@ -9,6 +9,9 @@ class PromptsController < ApplicationController
     @chat = @message.chat
     @messages = @chat.ordered_messages
 
+    # Initialize chat context
+    initialize_chat current_user&.chats
+
     # Initialize history
     initialize_history @chat.ordered_by_descending_prompt_executions
 

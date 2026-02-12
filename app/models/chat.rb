@@ -1,4 +1,6 @@
 class Chat < ApplicationRecord
+  include ChatManager::TitleGeneratable
+
   belongs_to :user, optional: true
   has_many :messages, dependent: :destroy
 
@@ -108,6 +110,17 @@ class Chat < ApplicationRecord
   end
 
   private
+
+  # Summarize the user's prompt into a short title via LLM (required by ChatManager::TitleGeneratable)
+  def summarize_for_title(prompt_text, jwt_token)
+    LlmMetaServerQuery.new.call(
+      jwt_token,
+      llm_uuid,
+      model,
+      "No context available.",
+      { role: "user", prompt: "Please summarize the following text into a short title (max 50 characters). Respond with only the title, nothing else: #{prompt_text}" }
+    )
+  end
 
   # Set a new UUID
   def set_uuid

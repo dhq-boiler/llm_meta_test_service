@@ -6,7 +6,10 @@ class ChatsController < ApplicationController
   skip_before_action :authenticate_user!, raise: false
 
   def show
-    @chat = Chat.includes(:messages).find(params[:id])
+    # Initialize chat context
+    initialize_chat current_user&.chats
+
+    @chat = current_user&.chats.includes(:messages).find_by(uuid: params[:id])
     @messages = @chat.ordered_messages
 
     # Initialize history
@@ -17,7 +20,8 @@ class ChatsController < ApplicationController
     @llm_options = LlmMetaServerResource.available_llm_options(jwt_token)
 
     # Set active UUID for history sidebar highlighting
-    set_active_message_uuid(@prompt_execution.execution_id)
+    @prompt_execution = @chat.ordered_by_descending_prompt_executions.first
+    set_active_message_uuid(@prompt_execution&.execution_id)
 
     render "chats/edit"
   rescue StandardError => e
@@ -26,11 +30,13 @@ class ChatsController < ApplicationController
   end
 
   def new
+    initialize_chat current_user&.chats
     # Find current conversation or create it on create method if not found
     @chat = Chat.find_or_switch_for_session(
       session,
       current_user
     )
+    push_to_chat(@chat) if @chat && @chats.exclude?(@chat)
     @messages = @chat&.ordered_messages || []
     # initialize history for the chat
     initialize_history @chat&.ordered_by_descending_prompt_executions
@@ -47,6 +53,9 @@ class ChatsController < ApplicationController
   def create
     jwt_token = current_user&.id_token if user_signed_in?
 
+    # Initialize chat sidebar
+    initialize_chat current_user&.chats
+
     # Find or create chat
     @chat = Chat.find_or_switch_for_session(
       session,
@@ -54,6 +63,7 @@ class ChatsController < ApplicationController
       llm_uuid: params[:api_key_uuid],
       model: params[:model]
     )
+    push_to_chat(@chat) if @chat && @chats.exclude?(@chat)
     @messages = @chat&.ordered_messages || []
 
     # initialize history for the chat
@@ -72,6 +82,8 @@ class ChatsController < ApplicationController
       # Send to LLM and get assistant response
       begin
         @assistant_message = @chat.add_assistant_response(@prompt_execution, jwt_token)
+        # Generate chat title from the user's prompt (only if title is not yet set)
+        @chat.generate_title(params[:message], jwt_token)
       rescue StandardError => e
         Rails.logger.error "Error in chat response: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
         @error_message = "An error occurred while getting the response. Please try again."
@@ -86,6 +98,9 @@ class ChatsController < ApplicationController
   end
 
   def edit
+    # Initialize chat context
+    initialize_chat current_user&.chats
+
     # Get LLM options available for users
     jwt_token = current_user&.id_token if user_signed_in?
     @llm_options = LlmMetaServerResource.available_llm_options(jwt_token)
