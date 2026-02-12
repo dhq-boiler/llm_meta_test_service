@@ -30,8 +30,9 @@ class Chat < ApplicationRecord
 
     def find_by_session_chat_id(session, current_user)
       return nil unless session[:chat_id].present?
+      return nil unless current_user.present?
 
-      chat = includes(:messages).find_by(id: session[:chat_id])
+      chat = includes(:messages).find_by(id: session[:chat_id], user_id: current_user.id)
       return nil unless chat
 
       # For guest users, only get conversations with nil user_id
