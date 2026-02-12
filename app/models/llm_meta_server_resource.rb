@@ -1,5 +1,5 @@
 class LlmMetaServerResource
-  # This is a non-persisted model for fetching external server resources
+  # This is a non-persisted model for fetching external server prompts
 
   class << self
     # Retrieve LLM options available for user selection (API Keys + Ollama)
@@ -32,7 +32,7 @@ class LlmMetaServerResource
       ollama_list
     end
 
-    # Builds normalized option hashes from an array of resources by slicing common keys
+    # Builds normalized option hashes from an array of prompts by slicing common keys
     # Accepts only arrays
     def format(resources)
       common_keys = %w[uuid description llm_type available_models]

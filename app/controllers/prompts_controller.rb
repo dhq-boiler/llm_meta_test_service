@@ -1,5 +1,6 @@
 class PromptsController < ApplicationController
-  include HistoryManageable
+  include ChatManager::ChatManageable
+  include PromptManager::HistoryManageable
   skip_before_action :authenticate_user!, raise: false
 
   def show

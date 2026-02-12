@@ -1,5 +1,7 @@
 class ChatsController < ApplicationController
-  include HistoryManageable
+  include ChatManager::ChatManageable
+  include ChatManager::CsvDownloadable
+  include PromptManager::HistoryManageable
   # Allow access without login
   skip_before_action :authenticate_user!, raise: false
 
