@@ -21,6 +21,7 @@
   <%# Includes all stylesheet files in app/assets/stylesheets %>
   <%= stylesheet_link_tag :app %>
   <%= stylesheet_link_tag "prompt_manager/history", "data-turbo-track": "reload" %>
+  <%= stylesheet_link_tag "chat_manager/chat", "data-turbo-track": "reload" %>
   <%= javascript_importmap_tags %>
 </head>
 
@@ -28,11 +29,13 @@
 <%= render "layouts/header" %>
 
 <div class="body">
-  <div class="sidebar">
-    <div id="history-sidebar">
-      <%= history_list(->(execution_id) { prompt_path(execution_id) }, active_uuid: @active_message_uuid) %>
+  <% if user_signed_in? %>
+    <div class="sidebar sidebar-left">
+      <div id="chat-sidebar">
+        <%= chat_list(->(id) { chat_path(id) }, active_uuid: @active_chat_uuid, download_csv_path: ->(id) { download_csv_chat_path(id) }, download_all_csv_path: download_all_csv_chats_path) %>
+      </div>
     </div>
-  </div>
+  <% end %>
   <div class="content <%= 'content-full' if controller_name == 'chats' %>">
     <% if alert %>
       <div class="flash alert"><%= alert %></div>
@@ -45,6 +48,11 @@
     <% end %>
 
     <%= yield %>
+  </div>
+  <div class="sidebar sidebar-right">
+    <div id="history-sidebar">
+      <%= history_list(->(execution_id) { prompt_path(execution_id) }, active_uuid: @active_message_uuid) %>
+    </div>
   </div>
 </div>
 </body>
