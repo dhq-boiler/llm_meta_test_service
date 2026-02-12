@@ -49,6 +49,10 @@ gem "httparty"
 
 gem "dotenv-rails"
 
+gem "prompt_manager", path: "../prompt_manager"
+gem "chat_manager", path: "../chat_manager"
+gem "llm_meta_client", path: "../llm_meta_client"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

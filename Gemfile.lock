@@ -1,3 +1,24 @@
+PATH
+  remote: ../chat_manager
+  specs:
+    chat_manager (0.1.0)
+      csv
+      rails (>= 8.1.2)
+
+PATH
+  remote: ../llm_meta_client
+  specs:
+    llm_meta_client (0.1.0)
+      chat_manager
+      prompt_manager
+      rails (>= 8.1.1)
+
+PATH
+  remote: ../prompt_manager
+  specs:
+    prompt_manager (0.1.0)
+      rails (>= 8.1.2)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -459,6 +480,7 @@ DEPENDENCIES
   brakeman
   bundler-audit
   capybara
+  chat_manager!
   debug
   devise
   dotenv-rails
@@ -467,9 +489,11 @@ DEPENDENCIES
   importmap-rails
   jbuilder
   kamal
+  llm_meta_client!
   omniauth
   omniauth-google-oauth2
   omniauth-rails_csrf_protection
+  prompt_manager!
   propshaft
   puma (>= 5.0)
   rails (~> 8.1.1)
