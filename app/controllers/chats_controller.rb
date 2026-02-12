@@ -4,6 +4,7 @@ class ChatsController < ApplicationController
   include PromptManager::HistoryManageable
   # Allow access without login
   skip_before_action :authenticate_user!, raise: false
+  before_action :authenticate_user!, only: [ :update_title, :download_csv, :download_all_csv ]
 
   def show
     # Initialize chat context
@@ -95,6 +96,29 @@ class ChatsController < ApplicationController
       format.turbo_stream
       format.html { redirect_to new_chat_path }
     end
+  end
+
+  def update_title
+    chat = current_user.chats.find_by!(uuid: params[:id])
+    title = params[:title].to_s.strip
+
+    if title.blank?
+      render json: { error: "Title cannot be blank" }, status: :unprocessable_entity
+      return
+    end
+
+    title = title.truncate(255)
+    chat.update!(title: title)
+
+    render json: {
+      title: title,
+      truncated_title: title.truncate(30)
+    }
+  end
+
+  def start_new
+    session.delete(:chat_id)
+    redirect_to root_path
   end
 
   def edit
