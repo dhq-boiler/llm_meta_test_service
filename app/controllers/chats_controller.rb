@@ -16,7 +16,7 @@ class ChatsController < ApplicationController
     initialize_history @chat.ordered_by_descending_prompt_executions
 
     # Get LLM options available for users
-    jwt_token = current_user&.id_token if user_signed_in?
+    jwt_token = current_user.id_token if user_signed_in?
     @llm_options = LlmMetaServerResource.available_llm_options(jwt_token)
 
     # Set active UUID for history sidebar highlighting
@@ -42,7 +42,7 @@ class ChatsController < ApplicationController
     initialize_history @chat&.ordered_by_descending_prompt_executions
 
     # Get LLM options available for users
-    jwt_token = current_user&.id_token if user_signed_in?
+    jwt_token = current_user.id_token if user_signed_in?
     @llm_options = LlmMetaServerResource.available_llm_options(jwt_token)
   rescue StandardError => e
     Rails.logger.error "Error in ChatsController#new: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
@@ -51,7 +51,7 @@ class ChatsController < ApplicationController
   end
 
   def create
-    jwt_token = current_user&.id_token if user_signed_in?
+    jwt_token = current_user.id_token if user_signed_in?
 
     # Initialize chat sidebar
     initialize_chat current_user&.chats
@@ -102,7 +102,7 @@ class ChatsController < ApplicationController
     initialize_chat current_user&.chats
 
     # Get LLM options available for users
-    jwt_token = current_user&.id_token if user_signed_in?
+    jwt_token = current_user.id_token if user_signed_in?
     @llm_options = LlmMetaServerResource.available_llm_options(jwt_token)
 
     @chat = Chat.find_or_switch_for_session(
@@ -123,7 +123,7 @@ class ChatsController < ApplicationController
   end
 
   def update
-    jwt_token = current_user&.id_token if user_signed_in?
+    jwt_token = current_user.id_token if user_signed_in?
 
     # Find or create chat
     @chat = Chat.find_or_switch_for_session(
