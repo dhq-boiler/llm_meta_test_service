@@ -36,7 +36,7 @@ class ChatsController < ApplicationController
       session,
       current_user
     )
-    push_to_chat(@chat) if @chat && @chats.exclude?(@chat)
+    add_chat(@chat) if @chat && @chats.exclude?(@chat)
     @messages = @chat&.ordered_messages || []
     # initialize history for the chat
     initialize_history @chat&.ordered_by_descending_prompt_executions
@@ -63,7 +63,7 @@ class ChatsController < ApplicationController
       llm_uuid: params[:api_key_uuid],
       model: params[:model]
     )
-    push_to_chat(@chat) if @chat && @chats.exclude?(@chat)
+    add_chat(@chat) if @chat && @chats.exclude?(@chat)
     @messages = @chat&.ordered_messages || []
 
     # initialize history for the chat
