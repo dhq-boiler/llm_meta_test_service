@@ -23,6 +23,13 @@
 <% end %>
 <% end %>
 
+<%# Update chat sidebar %>
+<%= turbo_stream.replace "chat-sidebar" do %>
+  <div id="chat-sidebar">
+    <%= chat_list(->(id) { chat_path(id) }, active_uuid: @chat&.uuid, download_csv_path: ->(id) { download_csv_chat_path(id) }, download_all_csv_path: download_all_csv_chats_path) %>
+  </div>
+<% end %>
+
 <%# Update history sidebar - replace entire content to ensure update %>
 <% if @prompt_execution %>
   <%= turbo_stream.replace "history-sidebar" do %>

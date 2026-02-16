@@ -10,8 +10,7 @@
  * files in this directory. Styles in this file should be added after the last require_* statement.
  * It is generally better to create a new file per style scope.
  *
- *= require_tree .
- *= require_self
+ * NOTE: This app uses Propshaft, not Sprockets. Use stylesheet_link_tag in layouts to load CSS files.
  */
 
 /* Global styles */
@@ -39,9 +38,9 @@ body {
 .sidebar {
   width: 260px;
   background-color: #ffffff;
-  border-right: 1px solid #e5e7eb;
   padding: 20px;
   overflow-y: auto;
+  flex-shrink: 0;
 
   h2 {
     font-size: 16px;
@@ -49,6 +48,14 @@ body {
     color: #374151;
     margin-bottom: 16px;
   }
+}
+
+.sidebar-left {
+  border-right: 1px solid #e5e7eb;
+}
+
+.sidebar-right {
+  border-left: 1px solid #e5e7eb;
 }
 
 .content {

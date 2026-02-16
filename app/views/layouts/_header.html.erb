@@ -4,8 +4,8 @@
       <%= link_to "LLM Meta Client", root_path %>
     </div>
     <div class="header-right">
-      <% unless current_page?(controller: "chats", action: "new") %>
-        <%= link_to root_path, class: "new-text-button" do %>
+      <% if @messages.present? %>
+        <%= button_to start_new_chats_path, method: :post, class: "new-text-button" do %>
           <i class="fa-solid fa-plus"></i> New Chat
         <% end %>
       <% end %>
