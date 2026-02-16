@@ -7,6 +7,12 @@ Rails.application.routes.draw do
   resources :chats, only: [ :new, :create, :edit, :update, :show ] do
     collection do
       delete :clear
+      post :start_new
+      get :download_all_csv
+    end
+    member do
+      patch :update_title
+      get :download_csv
     end
   end
   resources :prompts, only: [ :show ]
