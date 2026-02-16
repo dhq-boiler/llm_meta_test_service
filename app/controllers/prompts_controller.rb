@@ -1,5 +1,6 @@
 class PromptsController < ApplicationController
-  include HistoryManageable
+  include ChatManager::ChatManageable
+  include PromptManager::HistoryManageable
   skip_before_action :authenticate_user!, raise: false
 
   def show
@@ -7,6 +8,9 @@ class PromptsController < ApplicationController
     @message = @prompt_execution.messages.first
     @chat = @message.chat
     @messages = @chat.ordered_messages
+
+    # Initialize chat context
+    initialize_chat current_user&.chats
 
     # Initialize history
     initialize_history @chat.ordered_by_descending_prompt_executions
