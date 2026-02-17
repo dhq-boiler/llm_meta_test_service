@@ -17,12 +17,12 @@ class LlmMetaServerQuery
   private
 
   def request(api_key_uuid, id_token, model_id, user_content)
+    headers = { "Content-Type" => "application/json" }
+    headers["Authorization"] = "Bearer #{id_token}" if id_token.present?
+
     HTTParty.post(
       url(api_key_uuid, model_id),
-      headers: {
-        "Content-Type" => "application/json",
-        "Authorization" => "Bearer #{id_token}"
-      },
+      headers: headers,
       body: { prompt: "#{user_content}" }.to_json,
       timeout: 300 # 5 minute timeout setting (both read and connect)
     )
