@@ -2,34 +2,85 @@ import { Controller } from "@hotwired/stimulus"
 
 // Connects to data-controller="chats-form"
 export default class extends Controller {
-  static targets = ["text", "prompt", "submit", "model", "apiKey"]
+  static targets = ["text", "prompt", "submit", "model", "apiKey", "family"]
 
   connect() {
-
-    this.#setDefaultApiKeyAndModel()
+    this.#setDefaults()
     this.updateSubmitButton()
   }
 
-  apiKeyChanged(event) {
-    const selectedValue = event.target.value
-    const modelsData = event.target.dataset.models
+  familyChanged(event) {
+    const selectedFamily = event.target.value
+    const familiesData = event.target.dataset.families
 
-    if (!selectedValue || !modelsData) {
+    if (!selectedFamily || !familiesData) {
+      this.#showApiKeyField()
+      this.#clearApiKeySelect()
       this.#clearModelSelect()
       return
     }
 
     try {
-      const allModels = JSON.parse(modelsData)
-      const selectedKey = allModels.find((item) => item.value === selectedValue)
+      const families = JSON.parse(familiesData)
+      const family = families.find((f) => f.llm_type === selectedFamily)
 
-      if (selectedKey?.models) {
-        this.#populateModelSelect(selectedKey.models)
+      if (family?.api_keys) {
+        if (selectedFamily === "ollama") {
+          // Ollama: skip API key selection entirely, go straight to model
+          const apiKey = family.api_keys[0]
+          this.#hideApiKeyField()
+          this.apiKeyTarget.disabled = false
+          this.apiKeyTarget.innerHTML =
+            `<option value="${apiKey.uuid}" selected>${apiKey.description}</option>`
+          if (apiKey.available_models) {
+            this.#populateModelSelect(apiKey.available_models)
+          } else {
+            this.#clearModelSelect()
+          }
+        } else {
+          this.#showApiKeyField()
+          this.#populateApiKeySelect(family.api_keys)
+        }
+      } else {
+        this.#showApiKeyField()
+        this.#clearApiKeySelect()
+        this.#clearModelSelect()
+      }
+    } catch (e) {
+      console.error("Failed to parse families data:", e)
+      this.#clearApiKeySelect()
+      this.#clearModelSelect()
+    }
+  }
+
+  apiKeyChanged(event) {
+    const selectedValue = event.target.value
+    const familiesData = this.hasFamilyTarget
+      ? this.familyTarget.dataset.families
+      : null
+    const selectedFamily = this.hasFamilyTarget
+      ? this.familyTarget.value
+      : null
+
+    if (!selectedValue || !familiesData || !selectedFamily) {
+      this.#clearModelSelect()
+      return
+    }
+
+    try {
+      const families = JSON.parse(familiesData)
+      const family = families.find((f) => f.llm_type === selectedFamily)
+      const selectedKey = family?.api_keys?.find(
+        (k) => k.uuid === selectedValue
+      )
+
+      if (selectedKey?.available_models) {
+        this.#populateModelSelect(selectedKey.available_models)
       } else {
         this.#clearModelSelect()
       }
     } catch (e) {
-      console.error("Failed to parse models data:", e)
+      console.error("Failed to parse families data:", e)
       this.#clearModelSelect()
     }
   }
@@ -90,39 +141,127 @@ export default class extends Controller {
     }
   }
 
-  #setDefaultApiKeyAndModel() {
+  #setDefaults() {
     const urlParams = new URLSearchParams(window.location.search)
+    const defaultFamily = urlParams.get("family")
     const defaultApiKey = urlParams.get("api_key_uuid")
+    const defaultModel = urlParams.get("model")
 
-    if (defaultApiKey && this.hasApiKeyTarget) {
-      // Verify that the API key exists in the select options
-      const option = Array.from(this.apiKeyTarget.options).find(
-        (o) => o.value === defaultApiKey
+    if (defaultFamily && this.hasFamilyTarget) {
+      const familyOption = Array.from(this.familyTarget.options).find(
+        (o) => o.value === defaultFamily
       )
-      if (option) {
-        this.apiKeyTarget.value = option.value
+      if (familyOption) {
+        this.familyTarget.value = familyOption.value
+        this.familyChanged({ target: this.familyTarget })
 
-        // Generate model list based on selected API key
-        this.apiKeyChanged({ target: this.apiKeyTarget })
+        if (defaultFamily === "ollama") {
+          // Ollama: API key is auto-selected by familyChanged, just set model
+          if (defaultModel && this.hasModelTarget) {
+            const modelOption = Array.from(this.modelTarget.options).find(
+              (o) => o.value === defaultModel
+            )
+            if (modelOption) {
+              this.modelTarget.value = modelOption.value
+            }
+          }
+        } else if (defaultApiKey && this.hasApiKeyTarget) {
+          const apiKeyOption = Array.from(this.apiKeyTarget.options).find(
+            (o) => o.value === defaultApiKey
+          )
+          if (apiKeyOption) {
+            this.apiKeyTarget.value = apiKeyOption.value
+            this.apiKeyChanged({ target: this.apiKeyTarget })
 
-        // Set default model after model list is generated
-        this.#setDefaultModel()
+            if (defaultModel && this.hasModelTarget) {
+              const modelOption = Array.from(this.modelTarget.options).find(
+                (o) => o.value === defaultModel
+              )
+              if (modelOption) {
+                this.modelTarget.value = modelOption.value
+              }
+            }
+          }
+        }
       }
+    } else if (defaultApiKey && this.hasFamilyTarget) {
+      // Fallback: try to find the family from the API key UUID
+      this.#setDefaultsFromApiKey(defaultApiKey, defaultModel)
     }
   }
 
-  #setDefaultModel() {
-    const urlParams = new URLSearchParams(window.location.search)
-    const defaultModel = urlParams.get("model")
+  #setDefaultsFromApiKey(apiKeyUuid, defaultModel) {
+    const familiesData = this.hasFamilyTarget
+      ? this.familyTarget.dataset.families
+      : null
+    if (!familiesData) return
 
-    if (defaultModel && this.hasModelTarget) {
-      const option = Array.from(this.modelTarget.options).find(
-        (o) => o.value === defaultModel
-      )
-      if (option) {
-        this.modelTarget.value = option.value
+    try {
+      const families = JSON.parse(familiesData)
+      for (const family of families) {
+        const key = family.api_keys?.find((k) => k.uuid === apiKeyUuid)
+        if (key) {
+          this.familyTarget.value = family.llm_type
+          this.familyChanged({ target: this.familyTarget })
+
+          if (family.llm_type !== "ollama") {
+            this.apiKeyTarget.value = apiKeyUuid
+            this.apiKeyChanged({ target: this.apiKeyTarget })
+          }
+
+          if (defaultModel && this.hasModelTarget) {
+            const modelOption = Array.from(this.modelTarget.options).find(
+              (o) => o.value === defaultModel
+            )
+            if (modelOption) {
+              this.modelTarget.value = modelOption.value
+            }
+          }
+          break
+        }
       }
+    } catch (e) {
+      console.error("Failed to set defaults from API key:", e)
     }
+  }
+
+  #populateApiKeySelect(apiKeys) {
+    if (!this.hasApiKeyTarget) return
+
+    this.apiKeyTarget.innerHTML =
+      '<option value="">Please select a service</option>'
+    this.apiKeyTarget.disabled = false
+
+    for (const key of apiKeys) {
+      const option = document.createElement("option")
+      option.value = key.uuid
+      option.textContent = key.description
+      this.apiKeyTarget.appendChild(option)
+    }
+
+    // Clear model when API key list changes
+    this.#clearModelSelect()
+    this.updateSubmitButton()
+  }
+
+  #clearApiKeySelect() {
+    if (!this.hasApiKeyTarget) return
+
+    this.apiKeyTarget.innerHTML =
+      '<option value="">Please select a family first</option>'
+    this.apiKeyTarget.disabled = true
+    this.#clearModelSelect()
+    this.updateSubmitButton()
+  }
+
+  #hideApiKeyField() {
+    if (!this.hasApiKeyTarget) return
+    this.apiKeyTarget.closest(".api-key-field").classList.add("hidden")
+  }
+
+  #showApiKeyField() {
+    if (!this.hasApiKeyTarget) return
+    this.apiKeyTarget.closest(".api-key-field").classList.remove("hidden")
   }
 
   #populateModelSelect(models) {
@@ -147,7 +286,7 @@ export default class extends Controller {
     if (!this.hasModelTarget) return
 
     this.modelTarget.innerHTML =
-      '<option value="">Please select API key first</option>'
+      '<option value="">Please select a service first</option>'
     this.modelTarget.disabled = true
     this.updateSubmitButton()
   }
@@ -168,21 +307,18 @@ export default class extends Controller {
       return basicFieldsValid
     }
 
-    // API Key and Model selects require JavaScript validation for the following reasons:
-    // 1. Model select is dynamically enabled/disabled based on API Key selection
-    // 2. Disabled selects are not validated by checkValidity()
-    // 3. The dependency between the two selects (Model cannot be selected without API Key) cannot be expressed with HTML attributes alone
+    // Family, API Key and Model selects require JavaScript validation
+    const familySelect = this.hasFamilyTarget ? this.familyTarget : null
     const apiKeySelect = document.querySelector('select[name="api_key_uuid"]')
     const modelSelect = this.hasModelTarget
       ? this.modelTarget
       : document.querySelector('select[name="model"]')
 
-    const apiKeySelected = apiKeySelect?.value
+    const familySelected = familySelect?.value
+    const apiKeyHidden = apiKeySelect?.closest(".api-key-field")?.classList.contains("hidden")
+    const apiKeySelected = apiKeySelect?.value && (apiKeyHidden || !apiKeySelect.disabled)
     const modelSelected = modelSelect?.value && !modelSelect.disabled
 
-
-    return basicFieldsValid && apiKeySelected && modelSelected
+    return basicFieldsValid && familySelected && apiKeySelected && modelSelected
   }
 }
-
-
