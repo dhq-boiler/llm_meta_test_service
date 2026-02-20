@@ -8,5 +8,5 @@
   <label>LLM model</label>
   <%= select_tag :model, options_for_select([["Please select a service first", ""]]),
       { required: true, disabled: true,
-        data: { "#{stimulus_target_prefix}-target": "model", action: "change->#{stimulus_controller}#updateSubmitButton" } } %>
+        data: { "#{stimulus_target_prefix}-target": "model" } } %>
 </div>
