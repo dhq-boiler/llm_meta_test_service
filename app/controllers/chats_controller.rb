@@ -18,7 +18,7 @@ class ChatsController < ApplicationController
 
     # Get LLM options available for users
     jwt_token = current_user.id_token if user_signed_in?
-    @llm_options = LlmMetaServerResource.available_llm_options(jwt_token)
+    @llm_families = LlmMetaServerResource.available_llm_families(jwt_token)
 
     # Set active UUID for history sidebar highlighting
     @prompt_execution = @chat.ordered_by_descending_prompt_executions.first
@@ -44,10 +44,10 @@ class ChatsController < ApplicationController
 
     # Get LLM options available for users
     jwt_token = current_user.id_token if user_signed_in?
-    @llm_options = LlmMetaServerResource.available_llm_options(jwt_token)
+    @llm_families = LlmMetaServerResource.available_llm_families(jwt_token)
   rescue StandardError => e
     Rails.logger.error "Error in ChatsController#new: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
-    @llm_options = []
+    @llm_families = []
     flash.now[:alert] = "Chat service is currently unavailable. Please try again later."
   end
 
@@ -127,7 +127,7 @@ class ChatsController < ApplicationController
 
     # Get LLM options available for users
     jwt_token = current_user.id_token if user_signed_in?
-    @llm_options = LlmMetaServerResource.available_llm_options(jwt_token)
+    @llm_families = LlmMetaServerResource.available_llm_families(jwt_token)
 
     @chat = Chat.find_or_switch_for_session(
       session,
@@ -142,7 +142,7 @@ class ChatsController < ApplicationController
     set_active_message_uuid(params.dig(:chat, :branch_from_uuid))
   rescue StandardError => e
     Rails.logger.error "Error in ChatsController#edit: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
-    @llm_options = []
+    @llm_families = []
     flash.now[:alert] = "Chat service is currently unavailable. Please try again later."
   end
 

@@ -9,9 +9,10 @@
 
   <div class="chat-input-container">
     <%= form_with url: chats_path, method: :post, class: "chat-form", data: { controller: "chats-form", guest: current_user.nil?, action: "submit->chats-form#submit" } do |f| %>
-      <% if @llm_options.present? %>
+      <% if @llm_families.present? %>
         <div class="llm-selector-wrapper">
-          <%= render "shared/api_key_field", llm_options: @llm_options, stimulus_controller: "chats-form" %>
+          <%= render "shared/family_field", llm_families: @llm_families, stimulus_controller: "chats-form" %>
+          <%= render "shared/api_key_field", stimulus_controller: "chats-form" %>
           <%= render "shared/model_field", stimulus_controller: "chats-form" %>
         </div>
       <% end %>

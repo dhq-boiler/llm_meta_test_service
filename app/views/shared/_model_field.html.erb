@@ -6,7 +6,7 @@
 
 <div class="model-field">
   <label>LLM model</label>
-  <%= select_tag :model, options_for_select([["Please select API key first", ""]]),
+  <%= select_tag :model, options_for_select([["Please select a service first", ""]]),
       { required: true, disabled: true,
         data: { "#{stimulus_target_prefix}-target": "model", action: "change->#{stimulus_controller}#updateSubmitButton" } } %>
 </div>
