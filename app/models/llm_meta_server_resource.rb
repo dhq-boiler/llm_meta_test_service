@@ -55,11 +55,9 @@ class LlmMetaServerResource
     private
 
     def build_families(ollama_opts, api_keys)
-      families = []
-
       # Group user API keys by llm_type
-      api_keys.group_by { |k| k["llm_type"] }.each do |llm_type, keys|
-        families << {
+      families = api_keys.group_by { |k| k["llm_type"] }.map do |llm_type, keys|
+        {
           name: FAMILY_DISPLAY_NAMES[llm_type] || llm_type.capitalize,
           llm_type: llm_type,
           api_keys: keys.map { |k| format_api_key(k) }
