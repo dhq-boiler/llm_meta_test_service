@@ -3,14 +3,14 @@
     <% if message.role == 'user' %>
       👤 You
     <% else %>
-      🤖 <%= message.prompt_manager_prompt_execution.llm_platform&.capitalize || 'LLM' %>
+      🤖 <%= message.prompt_navigator_prompt_execution.llm_platform&.capitalize || 'LLM' %>
     <% end %>
   </div>
   <div class="message-content">
     <% if message.role == 'user' %>
-      <%= simple_format(message.prompt_manager_prompt_execution&.prompt) %>
+      <%= simple_format(message.prompt_navigator_prompt_execution&.prompt) %>
     <% else %>
-      <%= simple_format(message.prompt_manager_prompt_execution&.response) %>
+      <%= simple_format(message.prompt_navigator_prompt_execution&.response) %>
     <% end %>
   </div>
 </div>
