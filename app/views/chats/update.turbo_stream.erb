@@ -54,25 +54,27 @@
 <turbo-stream action="after" target="messages-list">
   <template>
     <script>
-      // Clear and refocus message input
-      const messageInput = document.getElementById('message-input');
-      if (messageInput) {
-        messageInput.value = '';
-        messageInput.focus();
-      }
+      (function() {
+        // Clear and refocus message input
+        const messageInput = document.getElementById('message-input');
+        if (messageInput) {
+          messageInput.value = '';
+          messageInput.focus();
+        }
 
-      // Update submit button state
-      const form = document.querySelector('[data-controller="chats-form"]');
-      if (form && messageInput) {
-        const event = new Event('input', { bubbles: true });
-        messageInput.dispatchEvent(event);
-      }
+        // Update submit button state
+        const form = document.querySelector('[data-controller="chats-form"]');
+        if (form && messageInput) {
+          const event = new Event('input', { bubbles: true });
+          messageInput.dispatchEvent(event);
+        }
 
-      // Scroll to bottom
-      const chatMessages = document.getElementById('chat-messages');
-      if (chatMessages) {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-      }
+        // Scroll to bottom
+        const chatMessages = document.getElementById('chat-messages');
+        if (chatMessages) {
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+      })();
     </script>
   </template>
 </turbo-stream>
