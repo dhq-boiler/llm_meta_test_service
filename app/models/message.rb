@@ -1,7 +1,7 @@
 class Message < ApplicationRecord
   belongs_to :chat
-  belongs_to :prompt_manager_prompt_execution,
-             class_name: "PromptManager::PromptExecution",
+  belongs_to :prompt_navigator_prompt_execution,
+             class_name: "PromptNavigator::PromptExecution",
              optional: false
 
   validates :role, presence: true, inclusion: { in: %w[user assistant] }
