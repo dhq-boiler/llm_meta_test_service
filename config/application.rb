@@ -23,10 +23,5 @@ module LlmMetaTestService
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
-
-    # Add asset paths for prompt_manager gem
-    config.assets.paths << Rails.root.join("../prompt_manager/app/assets/stylesheets")
-    # Add asset paths for chat_manager gem
-    config.assets.paths << Rails.root.join("../chat_manager/app/assets/stylesheets")
   end
 end
