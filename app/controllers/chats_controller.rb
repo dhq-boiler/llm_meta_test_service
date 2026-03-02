@@ -1,7 +1,7 @@
 class ChatsController < ApplicationController
   include ChatManager::ChatManageable
   include ChatManager::CsvDownloadable
-  include PromptManager::HistoryManageable
+  include PromptNavigator::HistoryManageable
   # Allow access without login
   skip_before_action :authenticate_user!, raise: false
   before_action :authenticate_user!, only: [ :update_title, :download_csv, :download_all_csv ]
@@ -18,7 +18,7 @@ class ChatsController < ApplicationController
 
     # Get LLM options available for users
     jwt_token = current_user.id_token if user_signed_in?
-    @llm_families = LlmMetaServerResource.available_llm_families(jwt_token)
+    @llm_families = LlmMetaClient::ServerResource.available_llm_families(jwt_token)
 
     # Set active UUID for history sidebar highlighting
     @prompt_execution = @chat.ordered_by_descending_prompt_executions.first
@@ -44,7 +44,7 @@ class ChatsController < ApplicationController
 
     # Get LLM options available for users
     jwt_token = current_user.id_token if user_signed_in?
-    @llm_families = LlmMetaServerResource.available_llm_families(jwt_token)
+    @llm_families = LlmMetaClient::ServerResource.available_llm_families(jwt_token)
   rescue StandardError => e
     Rails.logger.error "Error in ChatsController#new: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
     @llm_families = []
@@ -127,7 +127,7 @@ class ChatsController < ApplicationController
 
     # Get LLM options available for users
     jwt_token = current_user.id_token if user_signed_in?
-    @llm_families = LlmMetaServerResource.available_llm_families(jwt_token)
+    @llm_families = LlmMetaClient::ServerResource.available_llm_families(jwt_token)
 
     @chat = Chat.find_or_switch_for_session(
       session,
