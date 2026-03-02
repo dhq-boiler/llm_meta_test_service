@@ -62,7 +62,7 @@
     <script>
       (function() {
         // Clear and refocus message input
-        const messageInput = document.getElementById('message-input');
+        const messageInput = document.querySelector('#message-input');
         if (messageInput) {
           messageInput.value = '';
           messageInput.focus();
@@ -76,7 +76,7 @@
         }
 
         // Scroll to bottom
-        const chatMessages = document.getElementById('chat-messages');
+        const chatMessages = document.querySelector('#chat-messages');
         if (chatMessages) {
           chatMessages.scrollTop = chatMessages.scrollHeight;
         }
