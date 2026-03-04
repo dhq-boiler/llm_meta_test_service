@@ -118,9 +118,6 @@ GEM
       responders
       warden (~> 1.2.3)
     dotenv (3.2.0)
-    dotenv-rails (3.2.0)
-      dotenv (= 3.2.0)
-      railties (>= 6.1)
     drb (2.2.3)
     ed25519 (1.4.0)
     erb (6.0.2)
@@ -188,7 +185,7 @@ GEM
       zeitwerk (>= 2.6.18, < 3.0)
     language_server-protocol (3.17.0.5)
     lint_roller (1.1.0)
-    llm_meta_client (0.1.0)
+    llm_meta_client (0.2.0)
       chat_manager (~> 0.1)
       httparty (~> 0.22)
       prompt_navigator (~> 0.1)
@@ -205,7 +202,7 @@ GEM
       net-smtp
     marcel (1.1.0)
     matrix (0.4.3)
-    mcp (0.7.1)
+    mcp (0.8.0)
       json-schema (>= 4.1)
     mini_magick (5.3.1)
       logger
@@ -290,7 +287,7 @@ GEM
     psych (5.3.1)
       date
       stringio
-    public_suffix (7.0.2)
+    public_suffix (7.0.5)
     puma (7.2.0)
       nio4r (~> 2.0)
     raabro (1.4.0)
@@ -479,7 +476,6 @@ DEPENDENCIES
   chat_manager
   debug
   devise
-  dotenv-rails
   httparty
   image_processing (~> 1.2)
   importmap-rails
