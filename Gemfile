@@ -47,8 +47,6 @@ gem "omniauth-google-oauth2"
 gem "omniauth-rails_csrf_protection"
 gem "httparty"
 
-gem "dotenv-rails"
-
 gem "llm_meta_client"
 gem "chat_manager"
 gem "prompt_navigator"

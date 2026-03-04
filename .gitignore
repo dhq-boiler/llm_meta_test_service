@@ -35,3 +35,10 @@
 
 .kamal/secrets
 .idea
+
+# Ignore key files for decrypting credentials and more.
+/config/credentials/*.key
+/config/credentials/development.yml.enc
+
+/.claude/settings.json
+/.claude/settings.local.json
