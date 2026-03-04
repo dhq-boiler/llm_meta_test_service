@@ -1,24 +1,52 @@
-# README
+# LLM Meta Test Service
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+A Rails application for meta-management of LLM services.
 
-Things you may want to cover:
+## Requirements
 
-* Ruby version
+- Ruby 3.4.7
+- Rails 8.1.2
 
-* System dependencies
+## Setup
 
-* Configuration
+```bash
+bundle install
+rails db:create db:migrate
+```
 
-* Database creation
+## Credentials
 
-* Database initialization
+This application uses Rails credentials to manage secrets.
 
-* How to run the test suite
+### Editing
 
-* Services (job queues, cache servers, search engines, etc.)
+```bash
+rails credentials:edit
+```
 
-* Deployment instructions
+### Key Structure
 
-* ...
+```yaml
+google:
+  client_id: <Google OAuth 2.0 client ID>
+  client_secret: <Google OAuth 2.0 client secret>
+
+llm_service:
+  base_url: <LLM service base URL (default: http://localhost:3000)>
+  summarize_conversation_count: <Conversation summarization threshold (default: 10)>
+```
+
+### Reference
+
+| Key | Purpose | Default |
+|-----|---------|---------|
+| `google.client_id` | Google Sign-In (Devise OmniAuth) | None (required) |
+| `google.client_secret` | Google Sign-In (Devise OmniAuth) | None (required) |
+| `llm_service.base_url` | External LLM service API base URL | `http://localhost:3000` |
+| `llm_service.summarize_conversation_count` | Conversation count threshold for summarization | `10` |
+
+## Testing
+
+```bash
+rails test
+```
