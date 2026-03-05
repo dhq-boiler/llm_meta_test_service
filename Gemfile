@@ -48,8 +48,6 @@ gem "omniauth-rails_csrf_protection"
 gem "httparty"
 
 gem "llm_meta_client"
-gem "chat_manager"
-gem "prompt_navigator"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
