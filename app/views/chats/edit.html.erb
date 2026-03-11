@@ -15,6 +15,9 @@
           <%= render "shared/api_key_field", stimulus_controller: "llm-selector" %>
           <%= render "shared/model_field", stimulus_controller: "llm-selector" %>
         </div>
+        <% if user_signed_in? %>
+          <%= render "shared/tool_selector_field", stimulus_controller: "tool-selector" %>
+        <% end %>
       <% end %>
       <div class="input-wrapper">
         <%= f.text_area :message,
