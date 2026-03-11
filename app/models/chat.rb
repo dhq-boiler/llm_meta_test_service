@@ -67,8 +67,8 @@ class Chat < ApplicationRecord
   end
 
   # Add assistant response by sending to LLM
-  def add_assistant_response(prompt_execution, jwt_token)
-    response_content = send_to_llm(jwt_token)
+  def add_assistant_response(prompt_execution, jwt_token, tool_ids: [])
+    response_content = send_to_llm(jwt_token, tool_ids: tool_ids)
     prompt_execution.update!(
       llm_platform: llm_type(jwt_token),
       response: response_content
@@ -122,7 +122,7 @@ class Chat < ApplicationRecord
   end
 
   # Send messages to LLM and get response
-  def send_to_llm(jwt_token)
+  def send_to_llm(jwt_token, tool_ids: [])
     # Get LLM options
     llm_options = LlmMetaClient::ServerResource.available_llm_options(jwt_token)
 
@@ -149,6 +149,6 @@ class Chat < ApplicationRecord
     summarized_context += "Additional prompt: Responses from the assistant must consist solely of the response body."
 
     # Send chat request using LlmMetaClient::ServerQuery
-    LlmMetaClient::ServerQuery.new.call(jwt_token, llm_uuid, model, summarized_context, prompt)
+    LlmMetaClient::ServerQuery.new.call(jwt_token, llm_uuid, model, summarized_context, prompt, tool_ids: tool_ids)
   end
 end
