@@ -1,0 +1,23 @@
+<%
+  stimulus_controller = local_assigns[:stimulus_controller] || "tool-selector"
+%>
+<div class="tool-selector-field" data-controller="<%= stimulus_controller %>">
+  <div class="tool-selector-toggle">
+    <button type="button"
+            class="tool-toggle-button"
+            data-<%= stimulus_controller %>-target="toggleButton"
+            data-action="click-><%= stimulus_controller %>#toggle">
+      <i class="bi bi-tools"></i>
+      Tools
+      <span class="tool-count-badge" data-<%= stimulus_controller %>-target="countBadge" style="display: none;">0</span>
+      <i class="bi bi-chevron-down toggle-icon" data-<%= stimulus_controller %>-target="toggleIcon"></i>
+    </button>
+  </div>
+  <div class="tool-selector-panel" data-<%= stimulus_controller %>-target="panel" style="display: none;">
+    <div class="tool-loading" data-<%= stimulus_controller %>-target="loading" style="display: none;">
+      Loading tools...
+    </div>
+    <div class="mcp-server-list" data-<%= stimulus_controller %>-target="serverList">
+    </div>
+  </div>
+</div>
