@@ -82,7 +82,7 @@ class ChatsController < ApplicationController
 
       # Send to LLM and get assistant response
       begin
-        @assistant_message = @chat.add_assistant_response(@prompt_execution, jwt_token)
+        @assistant_message = @chat.add_assistant_response(@prompt_execution, jwt_token, tool_ids: tool_ids_param)
         # Generate chat title from the user's prompt (only if title is not yet set)
         @chat.generate_title(params[:message], jwt_token)
       rescue StandardError => e
@@ -172,7 +172,7 @@ class ChatsController < ApplicationController
 
       # Send to LLM and get assistant response
       begin
-        @assistant_message = @chat.add_assistant_response(@prompt_execution, jwt_token)
+        @assistant_message = @chat.add_assistant_response(@prompt_execution, jwt_token, tool_ids: tool_ids_param)
       rescue StandardError => e
         Rails.logger.error "Error in chat response: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
         @error_message = "An error occurred while getting the response. Please try again."
@@ -184,5 +184,11 @@ class ChatsController < ApplicationController
       format.turbo_stream
       format.html { redirect_to new_chat_path }
     end
+  end
+
+  private
+
+  def tool_ids_param
+    params[:tool_ids].presence || []
   end
 end
