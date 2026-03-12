@@ -202,6 +202,160 @@
   justify-content: flex-end;
 }
 
+/* Tool Selector */
+.tool-selector-field {
+  margin-bottom: 10px;
+}
+
+.tool-toggle-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+
+  &:hover {
+    background-color: #f9fafb;
+    border-color: #9ca3af;
+  }
+}
+
+.tool-count-badge {
+  background-color: #3b82f6;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.toggle-icon {
+  font-size: 11px;
+  transition: transform 0.2s;
+}
+
+.tool-selector-panel {
+  margin-top: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #f9fafb;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.tool-loading {
+  padding: 12px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.no-servers,
+.no-tools {
+  padding: 10px 12px;
+  color: #9ca3af;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.mcp-server-item {
+  border-bottom: 1px solid #e5e7eb;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.mcp-server-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  transition: background-color 0.15s;
+
+  &:hover {
+    background-color: #f3f4f6;
+  }
+
+  .server-toggle-icon {
+    font-size: 11px;
+    color: #6b7280;
+  }
+
+  .bi-server {
+    color: #6b7280;
+  }
+}
+
+.mcp-server-name {
+  flex: 1;
+}
+
+.tool-available-count {
+  font-size: 11px;
+  font-weight: 400;
+  color: #9ca3af;
+}
+
+.mcp-server-tools {
+  padding-left: 24px;
+}
+
+.tool-loading-inline {
+  padding: 8px 12px;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.tool-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+
+  &:hover {
+    background-color: #f3f4f6;
+  }
+
+  input[type="checkbox"] {
+    margin-top: 2px;
+    accent-color: #3b82f6;
+  }
+}
+
+.tool-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tool-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.tool-description {
+  font-size: 11px;
+  color: #6b7280;
+  line-height: 1.3;
+}
+
 .send-button {
   background-color: #3b82f6;
   color: white;
