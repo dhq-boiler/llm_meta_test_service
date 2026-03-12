@@ -17,6 +17,12 @@ Rails.application.routes.draw do
   end
   resources :prompts, only: [ :show ]
 
+  namespace :api do
+    resources :mcp_servers, only: [ :index ], param: :uuid do
+      get :tools, on: :member
+    end
+  end
+
   devise_for :users, controllers: {
     omniauth_callbacks: "users/omniauth_callbacks",
     sessions: "users/sessions"
