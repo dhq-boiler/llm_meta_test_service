@@ -20,9 +20,6 @@ Rails.application.routes.draw do
     end
   end
 
-  # Mount Action Cable
-  mount ActionCable.server => "/cable"
-
   devise_for :users, controllers: {
     omniauth_callbacks: "users/omniauth_callbacks",
     sessions: "users/sessions"
