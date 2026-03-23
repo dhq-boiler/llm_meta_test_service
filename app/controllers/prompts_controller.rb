@@ -4,8 +4,8 @@ class PromptsController < ApplicationController
   skip_before_action :authenticate_user!, raise: false
 
   def show
-    @prompt_execution = PromptNavigator::PromptExecution.includes(:messages).find_by(execution_id: params[:id])
-    @message = @prompt_execution.messages.first
+    @prompt_execution = PromptNavigator::PromptExecution.find_by!(execution_id: params[:id])
+    @message = Message.where(prompt_navigator_prompt_execution: @prompt_execution).order(:created_at).first
     @chat = @message.chat
     @messages = @chat.ordered_messages
 
@@ -24,6 +24,9 @@ class PromptsController < ApplicationController
 
     # Set active UUID for history sidebar highlighting
     set_active_message_uuid(@prompt_execution.execution_id)
+
+    # Set branch_from_uuid so the form knows which message to branch from
+    @branch_from_uuid = @prompt_execution.execution_id
 
     render "chats/edit"
   rescue StandardError => e

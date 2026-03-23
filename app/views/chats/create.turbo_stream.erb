@@ -33,7 +33,7 @@
 <%# Update history sidebar - replace entire content to ensure update %>
 <% if @prompt_execution %>
   <%= turbo_stream.replace "history-sidebar" do %>
-    <div id="history-content">
+    <div id="history-sidebar">
       <h2>History</h2>
       <div class="history-stack" id="history-stack" data-controller="history">
         <%= render 'prompt_navigator/history_card', locals: {
