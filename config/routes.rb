@@ -1,9 +1,6 @@
 Rails.application.routes.draw do
   root "chats#new"
 
-  # Mount Action Cable
-  mount ActionCable.server => "/cable"
-
   resources :chats, only: [ :new, :create, :edit, :update, :show ] do
     collection do
       delete :clear
