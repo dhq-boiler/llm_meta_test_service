@@ -47,16 +47,18 @@
 
 
 <script>
-  // Function to handle scrolling for both initial load and Turbo navigation
-  function scrollChatMessages() {
+  // Remove previous listener to prevent duplicates across Turbo navigations
+  if (window._scrollChatMessages) {
+    document.removeEventListener('turbo:load', window._scrollChatMessages);
+  }
+
+  window._scrollChatMessages = function() {
     const chatMessages = document.getElementById('chat-messages');
     if (chatMessages) {
       <% if @target_message_id.present? %>
-        // Scroll to target message
         const targetMessage = document.getElementById('message-<%= @target_message_id %>');
         if (targetMessage) {
           targetMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          // Highlight the target message
           targetMessage.style.backgroundColor = '#fef3c7';
           targetMessage.style.border = '2px solid #fbbf24';
           setTimeout(() => {
@@ -69,10 +71,8 @@
         chatMessages.scrollTop = chatMessages.scrollHeight;
       <% end %>
     }
-  }
+  };
 
-  // Scroll chat messages to bottom or to target message
-  // Support both regular page loads and Turbo navigation
-  document.addEventListener('DOMContentLoaded', scrollChatMessages);
-  document.addEventListener('turbo:load', scrollChatMessages);
+  document.addEventListener('DOMContentLoaded', window._scrollChatMessages);
+  document.addEventListener('turbo:load', window._scrollChatMessages);
 </script>
