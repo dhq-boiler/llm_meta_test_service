@@ -50,7 +50,11 @@ class Chat < ApplicationRecord
 
   # Add a user message to the chat
   def add_user_message(message, model, branch_from_uuid = nil)
-    parent_message = branch_from_uuid.present? ? messages.find_by(uuid: branch_from_uuid) : nil
+    parent_message = if branch_from_uuid.present?
+      messages.find_by(uuid: branch_from_uuid)
+    else
+      messages.where(role: "user").order(:created_at).last
+    end
     prompt_execution = PromptNavigator::PromptExecution.create!(
       prompt: message,
       model: model,
