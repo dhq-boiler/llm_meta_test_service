@@ -4,8 +4,8 @@ class PromptsController < ApplicationController
   skip_before_action :authenticate_user!, raise: false
 
   def show
-    @prompt_execution = PromptNavigator::PromptExecution.includes(:messages).find_by(execution_id: params[:id])
-    @message = @prompt_execution.messages.first
+    @prompt_execution = PromptNavigator::PromptExecution.find_by!(execution_id: params[:id])
+    @message = Message.where(prompt_navigator_prompt_execution: @prompt_execution).order(:created_at).first
     @chat = @message.chat
     @messages = @chat.ordered_messages
 
