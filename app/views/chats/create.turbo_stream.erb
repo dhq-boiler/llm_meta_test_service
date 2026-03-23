@@ -38,7 +38,7 @@
       <div class="history-stack" id="history-stack" data-controller="history">
         <%= render 'prompt_navigator/history_card', locals: {
           ann: @prompt_execution,
-          next_ann: nil,
+          next_ann: (@chat&.ordered_by_descending_prompt_executions || [])[1],
           is_active: @prompt_execution.execution_id == @active_message_uuid,
           card_path: ->(uuid) { prompt_path(uuid) }
         } %>
