@@ -30,7 +30,7 @@
             id: "message-input",
             data: { "chats-form-target": "prompt", action: "input->chats-form#updateSubmitButton" } %>
       </div>
-      <%= f.hidden_field :branch_from_uuid, value: params.dig(:chat, :branch_from_uuid) %>
+      <%= f.hidden_field :branch_from_uuid, value: @branch_from_uuid || params.dig(:chat, :branch_from_uuid) %>
       <div class="button-wrapper">
         <%= f.button type: "submit",
             class: "send-button",

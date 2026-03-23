@@ -25,6 +25,9 @@ class PromptsController < ApplicationController
     # Set active UUID for history sidebar highlighting
     set_active_message_uuid(@prompt_execution.execution_id)
 
+    # Set branch_from_uuid so the form knows which message to branch from
+    @branch_from_uuid = @prompt_execution.execution_id
+
     render "chats/edit"
   rescue StandardError => e
     Rails.logger.error "Error in PromptsController#show_by_uuid: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
