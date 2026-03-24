@@ -10,7 +10,8 @@ class ChatsController < ApplicationController
     # Initialize chat context
     initialize_chat current_user&.chats
 
-    @chat = current_user&.chats.includes(:messages).find_by(uuid: params[:id])
+    @chat = current_user&.chats.includes(:messages).find_by!(uuid: params[:id])
+    session[:chat_id] = @chat.id
     @messages = @chat.ordered_messages
 
     # Initialize history
@@ -149,13 +150,9 @@ class ChatsController < ApplicationController
   def update
     jwt_token = current_user.id_token if user_signed_in?
 
-    # Find or create chat
-    @chat = Chat.find_or_switch_for_session(
-      session,
-      current_user,
-      llm_uuid: params[:api_key_uuid],
-      model: params[:model]
-    )
+    # Use the chat identified by the URL, not the session
+    @chat = current_user.chats.find(params[:id])
+    session[:chat_id] = @chat.id
     @messages = @chat&.ordered_messages || []
     # initialize history for the chat
     initialize_history @chat&.ordered_by_descending_prompt_executions
