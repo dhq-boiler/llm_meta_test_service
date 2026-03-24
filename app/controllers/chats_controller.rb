@@ -72,6 +72,18 @@ class ChatsController < ApplicationController
     initialize_history @chat&.ordered_by_descending_prompt_executions
 
     if params[:message].present?
+      # Validate generation settings before proceeding
+      begin
+        generation_settings = generation_settings_param
+      rescue InvalidGenerationSettingsError => e
+        @error_message = e.message
+        respond_to do |format|
+          format.turbo_stream
+          format.html { redirect_to new_chat_path, alert: e.message }
+        end
+        return
+      end
+
       # Add user message (will be rendered via turbo stream)
       @prompt_execution, @user_message = @chat.add_user_message(params[:message],
                                                                 params[:model],
@@ -83,7 +95,7 @@ class ChatsController < ApplicationController
 
       # Send to LLM and get assistant response
       begin
-        @assistant_message = @chat.add_assistant_response(@prompt_execution, jwt_token, tool_ids: tool_ids_param, generation_settings: generation_settings_param)
+        @assistant_message = @chat.add_assistant_response(@prompt_execution, jwt_token, tool_ids: tool_ids_param, generation_settings: generation_settings)
         # Generate chat title from the user's prompt (only if title is not yet set)
         @chat.generate_title(params[:message], jwt_token)
       rescue StandardError => e
@@ -158,6 +170,18 @@ class ChatsController < ApplicationController
     initialize_history @chat&.ordered_by_descending_prompt_executions
 
     if params[:message].present?
+      # Validate generation settings before proceeding
+      begin
+        generation_settings = generation_settings_param
+      rescue InvalidGenerationSettingsError => e
+        @error_message = e.message
+        respond_to do |format|
+          format.turbo_stream
+          format.html { redirect_to chat_path(@chat), alert: e.message }
+        end
+        return
+      end
+
       # Add user message (will be rendered via turbo stream)
       @prompt_execution, @user_message = @chat.add_user_message(params[:message],
                                                                params[:model],
@@ -169,7 +193,7 @@ class ChatsController < ApplicationController
 
       # Send to LLM and get assistant response
       begin
-        @assistant_message = @chat.add_assistant_response(@prompt_execution, jwt_token, tool_ids: tool_ids_param, generation_settings: generation_settings_param)
+        @assistant_message = @chat.add_assistant_response(@prompt_execution, jwt_token, tool_ids: tool_ids_param, generation_settings: generation_settings)
       rescue StandardError => e
         Rails.logger.error "Error in chat response: #{e.class} - #{e.message}\n#{e.backtrace&.join("\n")}"
         @error_message = "An error occurred while getting the response. Please try again."
@@ -189,13 +213,27 @@ class ChatsController < ApplicationController
     params[:tool_ids].presence || []
   end
 
+  ALLOWED_GENERATION_KEYS = %w[temperature top_k top_p max_tokens repeat_penalty].freeze
+
+  class InvalidGenerationSettingsError < StandardError; end
+
   def generation_settings_param
-    settings = {}
-    settings[:temperature] = params[:temperature].to_f if params[:temperature].present?
-    settings[:top_k] = params[:top_k].to_i if params[:top_k].present?
-    settings[:top_p] = params[:top_p].to_f if params[:top_p].present?
-    settings[:max_tokens] = params[:max_tokens].to_i if params[:max_tokens].present?
-    settings[:repeat_penalty] = params[:repeat_penalty].to_f if params[:repeat_penalty].present?
-    settings
+    return {} if params[:generation_settings_json].blank?
+
+    parsed = JSON.parse(params[:generation_settings_json])
+    raise InvalidGenerationSettingsError, "Generation settings must be a JSON object" unless parsed.is_a?(Hash)
+
+    settings = parsed.slice(*ALLOWED_GENERATION_KEYS)
+    invalid_keys = parsed.keys - ALLOWED_GENERATION_KEYS
+    raise InvalidGenerationSettingsError, "Unknown keys: #{invalid_keys.join(', ')}" if invalid_keys.any?
+
+    non_numeric = settings.reject { |_k, v| v.is_a?(Numeric) }
+    if non_numeric.any?
+      raise InvalidGenerationSettingsError, "Values must be numeric: #{non_numeric.keys.join(', ')}"
+    end
+
+    settings.symbolize_keys
+  rescue JSON::ParserError => e
+    raise InvalidGenerationSettingsError, "Invalid JSON: #{e.message}"
   end
 end
