@@ -56,6 +56,7 @@ body {
 
 .sidebar-right {
   border-left: 1px solid #e5e7eb;
+  width: 310px;
 }
 
 .content {
