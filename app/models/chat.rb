@@ -15,13 +15,11 @@ class Chat < ApplicationRecord
       chat = find_by_session_chat_id(session, current_user)
       return chat if llm_uuid.nil? || model.nil?
 
-      # Create new chat if it doesn't exist or LLM/model has changed
-      if llm_uuid.present? && model.present? && (chat.nil? || (chat.present? && chat.needs_reset?(llm_uuid, model)))
-        chat = create!(
-          user: current_user,
-          llm_uuid: llm_uuid,
-          model: model
-        )
+      if chat.present?
+        # Update LLM/model on existing chat if changed
+        chat.update!(llm_uuid: llm_uuid, model: model) if chat.needs_reset?(llm_uuid, model)
+      else
+        chat = create!(user: current_user, llm_uuid: llm_uuid, model: model)
         session[:chat_id] = chat.id
       end
 
@@ -45,7 +43,7 @@ class Chat < ApplicationRecord
   def llm_type(jwt_token)
     llm_options = LlmMetaClient::ServerResource.available_llm_options(jwt_token)
     selected_llm = llm_options.find { |opt| opt[:uuid] == llm_uuid }
-    selected_llm&.dig(:llm_type) || "unknown"
+    selected_llm&.dig(:llm_type) || "ollama"
   end
 
   # Add a user message to the chat
