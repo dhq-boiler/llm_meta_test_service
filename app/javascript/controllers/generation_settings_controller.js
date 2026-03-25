@@ -6,15 +6,7 @@ export default class extends Controller {
     "toggleButton",
     "toggleIcon",
     "panel",
-    "temperatureRange",
-    "temperatureValue",
-    "topKRange",
-    "topKValue",
-    "topPRange",
-    "topPValue",
-    "maxTokensInput",
-    "repeatPenaltyRange",
-    "repeatPenaltyValue",
+    "jsonInput",
   ]
 
   connect() {
@@ -31,21 +23,5 @@ export default class extends Controller {
       this.toggleIconTarget.classList.toggle("bi-chevron-down", !this.expanded)
       this.toggleIconTarget.classList.toggle("bi-chevron-up", this.expanded)
     }
-  }
-
-  updateTemperature() {
-    this.temperatureValueTarget.textContent = this.temperatureRangeTarget.value
-  }
-
-  updateTopK() {
-    this.topKValueTarget.textContent = this.topKRangeTarget.value
-  }
-
-  updateTopP() {
-    this.topPValueTarget.textContent = this.topPRangeTarget.value
-  }
-
-  updateRepeatPenalty() {
-    this.repeatPenaltyValueTarget.textContent = this.repeatPenaltyRangeTarget.value
   }
 }
