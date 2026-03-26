@@ -20,7 +20,9 @@
               class="generation-settings-json-input"
               rows="8"
               placeholder='{"temperature": 0.7, "top_k": 40, "top_p": 0.9, "max_tokens": 4096, "repeat_penalty": 1.1}'
-              data-<%= stimulus_controller %>-target="jsonInput"></textarea>
+              data-<%= stimulus_controller %>-target="jsonInput"
+              data-action="input-><%= stimulus_controller %>#validate"></textarea>
+    <div class="generation-settings-error" data-<%= stimulus_controller %>-target="error" style="display: none;"></div>
     <div class="generation-settings-hint">
       Available keys: temperature, top_k, top_p, max_tokens, repeat_penalty
     </div>
