@@ -61,9 +61,7 @@ class ChatsController < ApplicationController
     # Find or create chat
     @chat = Chat.find_or_switch_for_session(
       session,
-      current_user,
-      llm_uuid: params[:api_key_uuid],
-      model: params[:model]
+      current_user
     )
     add_chat @chat
     @messages = @chat&.ordered_messages || []
@@ -86,6 +84,7 @@ class ChatsController < ApplicationController
 
       # Add user message (will be rendered via turbo stream)
       @prompt_execution, @user_message = @chat.add_user_message(params[:message],
+                                                                params[:api_key_uuid],
                                                                 params[:model],
                                                                 params[:branch_from_uuid])
       # Push to history for rendering
@@ -144,9 +143,7 @@ class ChatsController < ApplicationController
 
     @chat = Chat.find_or_switch_for_session(
       session,
-      current_user,
-      llm_uuid: params[:api_key_uuid],
-      model: params[:model]
+      current_user
     )
     @messages = @chat&.ordered_messages || []
     # initialize history for the chat
@@ -184,6 +181,7 @@ class ChatsController < ApplicationController
 
       # Add user message (will be rendered via turbo stream)
       @prompt_execution, @user_message = @chat.add_user_message(params[:message],
+                                                               params[:api_key_uuid],
                                                                params[:model],
                                                                params[:branch_from_uuid])
       # Push to history for rendering

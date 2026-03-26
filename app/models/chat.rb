@@ -6,23 +6,14 @@ class Chat < ApplicationRecord
 
   before_create :set_uuid
 
-  validates :llm_uuid, presence: true
-  validates :model, presence: true
-
   # Find existing chat from session or create new one
   class << self
-    def find_or_switch_for_session(session, current_user, llm_uuid: nil, model: nil)
+    def find_or_switch_for_session(session, current_user)
       chat = find_by_session_chat_id(session, current_user)
-      return chat if llm_uuid.nil? || model.nil?
+      return chat if chat.present?
 
-      if chat.present?
-        # Update LLM/model on existing chat if changed
-        chat.update!(llm_uuid: llm_uuid, model: model) if chat.needs_reset?(llm_uuid, model)
-      else
-        chat = create!(user: current_user, llm_uuid: llm_uuid, model: model)
-        session[:chat_id] = chat.id
-      end
-
+      chat = create!(user: current_user)
+      session[:chat_id] = chat.id
       chat
     end
 
@@ -39,15 +30,8 @@ class Chat < ApplicationRecord
     end
   end
 
-  # Get the LLM type for this chat
-  def llm_type(jwt_token)
-    llm_options = LlmMetaClient::ServerResource.available_llm_options(jwt_token)
-    selected_llm = llm_options.find { |opt| opt[:uuid] == llm_uuid }
-    selected_llm&.dig(:llm_type) || "ollama"
-  end
-
   # Add a user message to the chat
-  def add_user_message(message, model, branch_from_execution_id = nil)
+  def add_user_message(message, llm_uuid, model, branch_from_execution_id = nil)
     previous_id = if branch_from_execution_id.present?
       PromptNavigator::PromptExecution.find_by(execution_id: branch_from_execution_id)&.id
     else
@@ -55,6 +39,7 @@ class Chat < ApplicationRecord
     end
     prompt_execution = PromptNavigator::PromptExecution.create!(
       prompt: message,
+      llm_uuid: llm_uuid,
       model: model,
       configuration: "",
       previous_id: previous_id
@@ -70,9 +55,9 @@ class Chat < ApplicationRecord
 
   # Add assistant response by sending to LLM
   def add_assistant_response(prompt_execution, jwt_token, tool_ids: [], generation_settings: {})
-    response_content = send_to_llm(jwt_token, tool_ids: tool_ids, generation_settings: generation_settings)
+    response_content = send_to_llm(prompt_execution, jwt_token, tool_ids: tool_ids, generation_settings: generation_settings)
     prompt_execution.update!(
-      llm_platform: llm_type(jwt_token),
+      llm_platform: resolve_llm_type(prompt_execution.llm_uuid, jwt_token),
       response: response_content
     )
     new_message = messages.create!(
@@ -100,19 +85,24 @@ class Chat < ApplicationRecord
       .map(&:prompt_navigator_prompt_execution)
   end
 
-  # Check if chat needs to be reset due to LLM or model change
-  def needs_reset?(new_llm_uuid, new_model)
-    llm_uuid != new_llm_uuid || model != new_model
-  end
-
   private
+
+  # Resolve the LLM type (e.g. "openai", "google") from a given llm_uuid
+  def resolve_llm_type(llm_uuid, jwt_token)
+    llm_options = LlmMetaClient::ServerResource.available_llm_options(jwt_token)
+    selected_llm = llm_options.find { |opt| opt[:uuid] == llm_uuid }
+    selected_llm&.dig(:llm_type) || "unknown"
+  end
 
   # Summarize the user's prompt into a short title via LLM (required by ChatManager::TitleGeneratable)
   def summarize_for_title(prompt_text, jwt_token)
+    latest_pe = ordered_by_descending_prompt_executions.first
+    return nil unless latest_pe&.llm_uuid && latest_pe&.model
+
     LlmMetaClient::ServerQuery.new.call(
       jwt_token,
-      llm_uuid,
-      model,
+      latest_pe.llm_uuid,
+      latest_pe.model,
       "No context available.",
       { role: "user", prompt: "Please summarize the following text into a short title (max 50 characters). Respond with only the title, nothing else: #{prompt_text}" }
     )
@@ -124,7 +114,10 @@ class Chat < ApplicationRecord
   end
 
   # Send messages to LLM and get response
-  def send_to_llm(jwt_token, tool_ids: [], generation_settings: {})
+  def send_to_llm(prompt_execution, jwt_token, tool_ids: [], generation_settings: {})
+    llm_uuid = prompt_execution.llm_uuid
+    model = prompt_execution.model
+
     # Get LLM options
     llm_options = LlmMetaClient::ServerResource.available_llm_options(jwt_token)
 
