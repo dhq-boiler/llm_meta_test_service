@@ -68,6 +68,12 @@
           messageInput.dispatchEvent(event);
         }
 
+        // Update branch_from_uuid to the latest prompt execution
+        const branchField = document.getElementById('branch_from_uuid');
+        if (branchField) {
+          branchField.value = '<%= @prompt_execution&.execution_id %>';
+        }
+
         // Scroll to bottom
         const chatMessages = document.getElementById('chat-messages');
         if (chatMessages) {
