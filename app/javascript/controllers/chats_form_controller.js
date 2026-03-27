@@ -13,7 +13,15 @@ export default class extends Controller {
   }
 
   // Handle form submission to show user message immediately
-  submit() {
+  submit(event) {
+    // Check generation settings validity before submitting
+    const gsController = this.#generationSettingsController()
+    if (gsController && !gsController.isValid) {
+      event.preventDefault()
+      gsController.validate()
+      return
+    }
+
     // Don't prevent default - let Turbo handle the form submission
     // Just add the user message to the DOM immediately
     const messageContent = this.promptTarget.value.trim()
@@ -62,6 +70,12 @@ export default class extends Controller {
     if (chatMessages) {
       chatMessages.scrollTop = chatMessages.scrollHeight
     }
+  }
+
+  #generationSettingsController() {
+    const el = this.element.querySelector('[data-controller*="generation-settings"]')
+    if (!el) return null
+    return this.application.getControllerForElementAndIdentifier(el, "generation-settings")
   }
 
   #canSubmit() {
